@@ -7802,14 +7802,14 @@ const view = { lng: 100, lat: 25, zoom: 1 };          // the point facing you, a
 const ZMIN = 1, ZMAX = 60;
 let W = 0, H = 0, DPR = 1, R0 = 1;
 let land110 = null, land50 = null, borders = null;
-let dirty = true, fineDone = false, lastMove = 0, lastInteract = 0, anim = null;
+let dirty = true, lastInteract = 0, anim = null;
 
 function resize(){
   DPR = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight;
   for (const c of [base, fx]){ c.width = W * DPR; c.height = H * DPR; c.style.width = W + 'px'; c.style.height = H + 'px'; }
   R0 = Math.min(W, H) * .4; viewChanged();
 }
-function viewChanged(){ dirty = true; fineDone = false; lastMove = performance.now(); }
+function viewChanged(){ dirty = true; }
 function applyView(){ proj.rotate([-view.lng, -view.lat]).scale(R0 * view.zoom).translate([W / 2, H / 2 + 20]); }
 const clampLat = v => Math.max(-80, Math.min(80, v));
 const setZoom = z => { view.zoom = Math.max(ZMIN, Math.min(ZMAX, z)); viewChanged(); };
@@ -7817,11 +7817,11 @@ const facing = (lng, lat) => d3.geoDistance([lng, lat], [view.lng, view.lat]);
 const visible = (lng, lat) => facing(lng, lat) < Math.PI / 2 - .03;
 const degPerPx = () => 180 / (Math.PI * R0 * view.zoom);
 
-function drawBase(fine){
+function drawBase(){
   applyView();
   bctx.setTransform(DPR, 0, 0, DPR, 0, 0); bctx.clearRect(0, 0, W, H);
   bctx.beginPath(); bpath({ type: 'Sphere' }); bctx.fillStyle = '#6fa8e0'; bctx.fill();
-  const land = fine && land50 || land110;
+  const land = view.zoom <= 3.5 ? land110 : (land50 || land110);
   if (land){
     bctx.beginPath(); bpath(land); bctx.fillStyle = '#fff'; bctx.fill();
     bctx.lineWidth = .7; bctx.strokeStyle = '#4f86bd'; bctx.stroke();
@@ -7831,13 +7831,16 @@ function drawBase(fine){
   placePins();
 }
 
-// coarse coastlines while spinning, detailed ones once it rests
+// Coastline resolution depends only on zoom level
 fetch('https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json').then(r => r.json()).then(t => {
   land110 = topojson.feature(t, t.objects.land);
   borders = topojson.mesh(t, t.objects.countries, (a, b) => a !== b);
   viewChanged();
   return fetch('https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/land-50m.json').then(r => r.json())
-    .then(t2 => { land50 = topojson.feature(t2, t2.objects.land); fineDone = false; });
+    .then(t2 => {
+      land50 = topojson.feature(t2, t2.objects.land);
+      viewChanged();
+    });
 }).catch(() => toast("Couldn't draw the coastlines — cities still work"));
 
 /* ---------- pins: cities & spores sit on the globe as HTML ---------- */
@@ -8047,8 +8050,11 @@ function frame(){
              && !$('modal').classList.contains('open') && !$('list').classList.contains('open') && !$('manifesto').classList.contains('open')){
     view.lng += .03; viewChanged();          // drift slowly when nobody is touching it
   }
-  if (dirty){ drawBase(false); dirty = false; }
-  else if (!fineDone && now - lastMove > 160){ drawBase(true); fineDone = true; }
+
+  if (dirty) {
+    drawBase();
+    dirty = false;
+  }
 
   tempS += (temp - tempS) * .02;
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
