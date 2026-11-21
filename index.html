@@ -7799,7 +7799,7 @@ const bctx = base.getContext('2d'), ctx = fx.getContext('2d');
 const proj = d3.geoOrthographic().clipAngle(90).precision(.4);
 const bpath = d3.geoPath(proj, bctx), fpath = d3.geoPath(proj, ctx);
 const view = { lng: 100, lat: 25, zoom: 1 };          // the point facing you, and how close
-const ZMIN = 1, ZMAX = 8;
+const ZMIN = 1, ZMAX = 60;
 let W = 0, H = 0, DPR = 1, R0 = 1;
 let land110 = null, land50 = null, borders = null;
 let dirty = true, fineDone = false, lastMove = 0, lastInteract = 0, anim = null;
@@ -7939,9 +7939,10 @@ function touchView(){ lastInteract = performance.now(); anim = null; }
 const ptrs = new Map(); let drag = null, pinch = null;
 globe.addEventListener('wheel', e => {
   e.preventDefault(); touchView(); setNear(null);
-  if (e.ctrlKey){ setZoom(view.zoom * Math.exp(-e.deltaY * .01)); return; }     // trackpad pinch
-  view.lng += (e.deltaY + e.deltaX) * degPerPx() * .5; viewChanged();             // scroll = spin
+  setZoom(view.zoom * Math.exp(-e.deltaY * .01)); return; 
 }, { passive: false });
+
+
 globe.addEventListener('pointerdown', e => {
   touchView(); globe.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]);
   if (ptrs.size === 1) drag = { x: e.clientX, y: e.clientY, lng: view.lng, lat: view.lat, moved: 0 };
