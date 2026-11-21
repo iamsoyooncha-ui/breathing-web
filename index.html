@@ -7938,9 +7938,31 @@ function onSporeClick(id){
 function touchView(){ lastInteract = performance.now(); anim = null; }
 const ptrs = new Map(); let drag = null, pinch = null;
 globe.addEventListener('wheel', e => {
-  e.preventDefault(); touchView(); setNear(null);
-  setZoom(view.zoom * Math.exp(-e.deltaY * .01)); return; 
+  e.preventDefault();
+  touchView();
+  setNear(null);
+
+  const rect = globe.getBoundingClientRect();
+  const mouse = [e.clientX - rect.left, e.clientY - rect.top];
+
+  applyView();
+  const geo = proj.invert(mouse);
+  if (!geo) return;
+
+  setZoom(view.zoom * Math.exp(-e.deltaY * .01));
+
+  applyView();
+  const next = proj.invert(mouse);
+
+  if (next) {
+    view.lng -= next[0] - geo[0];
+    view.lat -= next[1] - geo[1];
+    view.lat = clampLat(view.lat);
+  }
+
+  viewChanged();
 }, { passive: false });
+
 
 
 globe.addEventListener('pointerdown', e => {
