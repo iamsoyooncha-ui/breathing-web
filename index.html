@@ -1,272 +1,1092 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>The Fermentary</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --bg:#121212; --panel:#181818; --ink:#ececec; --soft:#8c8c8c; --line:#333;
-    --mint:#b9f2b4; --lav:#cfb3ec; --dark:#111; --breath:5s;
-  }
-  *{box-sizing:border-box}
-  html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);
-    font-family:"Inter",system-ui,-apple-system,sans-serif;font-size:13px;-webkit-font-smoothing:antialiased}
-  button{font:inherit;cursor:pointer;color:inherit}
-  /* ---------- globe ---------- */
-  #globe{position:fixed;inset:0;overflow:hidden;touch-action:none;cursor:grab;background:radial-gradient(circle at 50% 52%,#1e1e1e,#0b0b0b 70%)}
-  #globe.dragging{cursor:grabbing}
-  #globe canvas{position:absolute;left:0;top:0}
-  #pins{position:absolute;inset:0;pointer-events:none}
-  .pin{position:absolute;left:0;top:0;will-change:transform}
-  .spore-pin{pointer-events:auto;cursor:pointer}
-  .spore-pin:hover{z-index:9999!important}
-  body.placing #globe{cursor:crosshair}
-  body.oncity #globe{cursor:pointer}
-  .zoom{position:fixed;right:20px;bottom:20px;z-index:900;display:flex;flex-direction:column;gap:12px}
-  .zoom .yeast{width:38px;height:32px;padding:0;font-size:16px}
-  .credit{position:fixed;right:76px;bottom:18px;z-index:900;font-size:10px;color:#555}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>The Fermentary</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #121212;
+      --panel: #181818;
+      --ink: #ececec;
+      --soft: #8c8c8c;
+      --line: #333;
+      --mint: #b9f2b4;
+      --lav: #cfb3ec;
+      --dark: #111;
+      --breath: 5s;
+    }
 
-  /* ---------- yeast buttons: a budding cell that slowly changes shape ---------- */
-  .yeast{position:relative;border:0;background:var(--mint);color:var(--dark);padding:9px 18px;font-size:13px;
-    border-radius:62% 38% 54% 46% / 55% 48% 52% 45%;animation:yeast 8s ease-in-out infinite;transition:transform .2s}
-  .yeast::after{content:"";position:absolute;right:-6px;top:-4px;width:13px;height:13px;border-radius:50%;
-    background:inherit;transition:transform .35s cubic-bezier(.3,1.6,.5,1)}
-  .yeast:hover::after{transform:translate(4px,-3px) scale(1.35)}
-  .yeast:active{transform:scale(.94)}
-  .yeast.lav{background:var(--lav)}
-  .yeast.ghost{background:#2a2a2a;color:var(--ink)}
-  .yeast:nth-of-type(2n){animation-delay:-3s}
-  .yeast:nth-of-type(2n)::after{right:auto;left:-5px;top:auto;bottom:-4px;width:11px;height:11px}
-  @keyframes yeast{
-    0%,100%{border-radius:62% 38% 54% 46% / 55% 48% 52% 45%}
-    50%{border-radius:44% 56% 40% 60% / 47% 58% 42% 53%}
-  }
+    * {
+      box-sizing: border-box
+    }
 
-  /* ---------- header ---------- */
-  .top{position:fixed;top:0;left:0;right:0;display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:16px 20px;z-index:1000;pointer-events:none}
-  .top>*{pointer-events:auto}
-  .brand{display:flex;align-items:center;gap:10px;margin-right:auto;background:rgba(60,60,60,.75);padding:6px 14px 6px 10px;border-radius:6px;
-    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-  .mark{position:relative;width:16px;height:14px;border-radius:55% 45% 50% 50%;background:#fff;animation:breathe var(--breath) ease-in-out infinite}
-  .mark::after{content:"";position:absolute;right:-5px;top:-3px;width:7px;height:7px;border-radius:50%;background:#fff}
-  @keyframes breathe{50%{transform:scale(1.08)}}
-  .brand h1{font-size:15px;font-weight:400;margin:0;letter-spacing:.02em}
-  .temp{display:flex;align-items:center;gap:8px;color:var(--soft);font-size:12px}
-  .temp b{color:var(--ink);font-weight:400}
-  .bar{width:48px;height:2px;background:#333}
-  .bar i{display:block;height:100%;width:30%;background:#fff;transition:width 1s}
-  nav{display:flex;gap:12px}
+    html,
+    body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      font-size: 13px;
+      -webkit-font-smoothing: antialiased
+    }
 
-  .foot{position:fixed;left:20px;bottom:16px;z-index:900;font-size:11px;color:#666;line-height:1.7}
-  .foot a{color:inherit;cursor:pointer;text-decoration:underline}
+    button {
+      font: inherit;
+      cursor: pointer;
+      color: inherit
+    }
 
-  .placebar{position:fixed;left:50%;top:76px;transform:translateX(-50%);z-index:1100;background:rgba(60,60,60,.85);border-radius:6px;
-    padding:6px 6px 6px 14px;display:none;align-items:center;gap:12px;white-space:nowrap;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-  body.placing .placebar{display:flex}
-  .placebar .yeast{padding:6px 13px;font-size:12px}
+    /* ---------- globe ---------- */
+    #globe {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      touch-action: none;
+      cursor: grab;
+      background: radial-gradient(circle at 50% 52%, #1e1e1e, #0b0b0b 70%)
+    }
 
-  /* ---------- cities ---------- */
-  .city-icon{background:none;border:0}
-  .city{position:absolute;left:-6px;top:-6px;width:12px;height:12px}
-  .city i{position:absolute;inset:3px;border-radius:50%;background:#111;box-shadow:0 0 0 1.5px #fff;transition:transform .2s}
-  .city span{position:absolute;left:12px;top:50%;transform:translateY(-50%);white-space:nowrap;font-size:11.5px;
-    background:var(--mint);color:var(--dark);padding:0 6px;border-radius:2px;transition:background .2s}
-  .city::after{content:"";position:absolute;left:50%;top:50%;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;
-    border:1.5px dashed #111;opacity:0;transform:scale(.4);transition:all .25s}
-  .city.has span{display:none}
-  .city.near i{transform:scale(1.6)}
-  .city.near::after{opacity:1;transform:scale(1);animation:spin 8s linear infinite}
-  .city.near span{display:block;background:#fff}
-  @keyframes spin{to{transform:rotate(360deg)}}
+    #globe.dragging {
+      cursor: grabbing
+    }
 
-  /* ---------- spores ---------- */
-  .spore-icon{background:none;border:0}
-  .spore{position:absolute;animation:breathe var(--breath) ease-in-out infinite;animation-delay:var(--d)}
-  .spore .ph{position:absolute;inset:0;border-radius:2px;background:#333 center/cover}
-  .spore .lb{position:absolute;left:50%;top:100%;transform:translateX(-50%);margin-top:5px;white-space:nowrap;font-size:11.5px;
-    background:var(--lav);color:var(--dark);padding:0 6px;border-radius:2px;pointer-events:none}
-  .spore.dormant{animation:none}
-  .spore.dormant .ph{filter:grayscale(1);opacity:.45}
-  .spore.dormant .lb{background:#555;color:#ccc}
-  .spore.sel .ph{outline:1px solid #fff;outline-offset:3px}
-  .spore.linkfrom .ph{outline:1px dashed #fff;outline-offset:3px}
+    #globe canvas {
+      position: absolute;
+      left: 0;
+      top: 0
+    }
 
-  /* ---------- panel ---------- */
-  .panel{position:fixed;top:0;right:0;bottom:0;width:400px;max-width:100%;background:var(--panel);border-left:1px solid var(--line);z-index:1200;
-    transform:translateX(105%);transition:transform .35s cubic-bezier(.2,.8,.2,1);overflow-y:auto}
-  .panel.open{transform:none}
-  .close{position:sticky;top:12px;float:right;margin:12px;width:34px;height:30px;padding:0;font-size:16px;z-index:2}
-  .hero{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
-  .pbody{padding:20px 22px 32px}
-  .pbody h2{font-size:20px;font-weight:400;margin:0 0 10px}
-  .meta{font-size:11.5px;color:var(--soft);display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center}
-  .chip{font-size:11px;padding:0 6px;border-radius:2px;background:var(--mint);color:var(--dark)}
-  .chip.dormant{background:#555;color:#ddd}
-  .chip.ripe{background:var(--lav)}
-  .recipe{font-size:13.5px;line-height:1.75;margin:16px 0;white-space:pre-wrap}
-  .by{font-size:11.5px;color:var(--soft);margin-top:6px}
-  .actions{display:flex;gap:12px;flex-wrap:wrap;margin:20px 0}
-  .actions .yeast{padding:7px 14px;font-size:12px}
-  .actions .yeast.on{background:#fff}
-  h3{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);margin:24px 0 10px;font-weight:400}
-  .links{display:flex;flex-wrap:wrap;gap:6px}
-  .links button{border:0;background:var(--lav);color:var(--dark);padding:0 6px 0 0;border-radius:2px;font-size:12px;display:flex;align-items:center;gap:6px}
-  .links button i{width:20px;height:20px;background-size:cover;background-position:center}
-  .empty{font-size:12px;color:var(--soft)}
-  .comment{padding:12px 0;border-top:1px solid var(--line)}
-  .comment .who{font-size:11.5px;color:var(--soft)}
-  .comment .who b{color:var(--ink);font-weight:400;margin-right:8px}
-  .cdel{float:right;border:0;background:none;padding:0;color:var(--soft);font-size:11px;text-decoration:underline}
-  .cdel:hover{color:#f2a0a0}
-  .yeast.danger{background:#f2b4b4}
-  .comment p{margin:4px 0 0;font-size:13px;line-height:1.6;white-space:pre-wrap}
-  .comment img{width:100%;margin-top:8px;display:block}
-  form.feed{margin-top:14px;display:grid;gap:8px}
-  input[type=text],textarea{font:inherit;font-size:13px;width:100%;padding:9px 11px;border-radius:2px;border:1px solid #3a3a3a;background:var(--bg);color:var(--ink)}
-  textarea{resize:vertical;min-height:72px}
-  input:focus,textarea:focus{outline:1px solid var(--mint);outline-offset:-1px}
-  ::placeholder{color:#666}
-  .row2{display:flex;gap:8px;align-items:center}
-  .row2 label{font-size:12px;color:var(--soft);flex:1}
+    #pins {
+      position: absolute;
+      inset: 0;
+      pointer-events: none
+    }
 
-  /* ---------- archive ---------- */
-  .list{position:fixed;inset:0;z-index:1050;background:var(--bg);overflow-y:auto;display:none;padding:80px 20px 48px}
-  .list.open{display:block}
-  .wrap{max-width:1040px;margin:0 auto}
-  .list input{max-width:420px;margin-bottom:20px}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:18px}
-  .card{background:none;border:0;text-align:left;padding:0}
-  .card img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
-  .card.dormant img{filter:grayscale(1);opacity:.5}
-  .card h4{display:inline-block;margin:8px 0 4px;font-size:12px;font-weight:400;background:var(--lav);color:var(--dark);padding:0 6px;border-radius:2px}
-  .card .st{font-size:11px;color:var(--soft)}
+    .pin {
+      position: absolute;
+      left: 0;
+      top: 0;
+      will-change: transform
+    }
 
-  /* ---------- manifesto ---------- */
-  .manifesto{position:fixed;inset:0;z-index:1050;background:var(--bg);overflow-y:auto;display:none;padding:110px 20px 64px}
-  .manifesto.open{display:block}
-  .manifesto .text{max-width:620px;margin:0 auto}
-  .manifesto h2{font-size:28px;font-weight:400;margin:0 0 28px;letter-spacing:.01em}
-  .manifesto p{font-size:15px;line-height:1.85;margin:0 0 20px}
-  .manifesto .tenets{list-style:none;counter-reset:t;padding:0;margin:0 0 48px}
-  .manifesto .tenets li{counter-increment:t;position:relative;padding:14px 0 14px 44px;border-top:1px solid var(--line);font-size:17px;line-height:1.6}
-  .manifesto .tenets li:last-child{border-bottom:1px solid var(--line)}
-  .manifesto .tenets li::before{content:counter(t);position:absolute;left:0;top:15px;width:24px;height:22px;font-size:12px;
-    display:flex;align-items:center;justify-content:center;background:var(--mint);color:var(--dark);border-radius:55% 45% 50% 50%}
-  .manifesto p.sign{font-size:12px;color:var(--soft);margin-top:36px}
-  #listBack,#maniBackTop{display:block;margin:0 0 16px;padding:7px 16px;font-size:12px}
+    .spore-pin {
+      pointer-events: auto;
+      cursor: pointer
+    }
 
-  /* ---------- modal ---------- */
-  .modal{position:fixed;inset:0;z-index:1300;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:16px}
-  .modal.open{display:flex}
-  .box{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:22px;width:100%;max-width:420px;display:grid;gap:10px;max-height:92vh;overflow-y:auto}
-  .box h2{margin:0;font-size:16px;font-weight:400}
-  .sub{margin:0 0 4px;font-size:11.5px;color:var(--soft)}
-  .drop{border:1px dashed #555;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;
-    color:var(--soft);font-size:12px;cursor:pointer;background:var(--bg) center/cover no-repeat;text-align:center;padding:12px}
-  .drop.has{border-style:solid;color:transparent}
-  .mrow{display:flex;gap:14px;justify-content:flex-end;margin-top:6px}
+    .spore-pin:hover {
+      z-index: 9999 !important
+    }
 
-  .onboard{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:900;background:rgba(24,24,24,.92);border:1px solid var(--line);
-    border-radius:4px;padding:22px 24px;max-width:340px;text-align:center;display:none}
-  .onboard.show{display:block}
-  .onboard h2{margin:0 0 8px;font-size:15px;font-weight:400}
-  .onboard p{margin:0 0 18px;font-size:12px;line-height:1.7;color:var(--soft)}
+    body.placing #globe {
+      cursor: crosshair
+    }
 
-  .toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);opacity:0;background:#eee;color:var(--dark);padding:6px 14px;
-    border-radius:2px;font-size:12px;z-index:1400;transition:all .3s;pointer-events:none}
-  .toast.show{opacity:1;transform:translate(-50%,0)}
+    body.oncity #globe {
+      cursor: pointer
+    }
 
-  @media (max-width:760px){
-    .top{padding:12px;gap:10px}
-    .temp{order:3}
-    .panel{top:auto;width:100%;height:80vh;border-left:0;border-top:1px solid var(--line);transform:translateY(105%)}
-    .placebar{top:auto;bottom:24px}
-    .list{padding:120px 16px 40px}
-    .manifesto{padding:120px 16px 48px}
-    .foot{display:none}
-  }
-</style>
+    .zoom {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      z-index: 900;
+      display: flex;
+      flex-direction: column;
+      gap: 12px
+    }
+
+    .zoom .yeast {
+      width: 38px;
+      height: 32px;
+      padding: 0;
+      font-size: 16px
+    }
+
+    .credit {
+      position: fixed;
+      right: 76px;
+      bottom: 18px;
+      z-index: 900;
+      font-size: 10px;
+      color: #555
+    }
+
+    /* ---------- yeast buttons: a budding cell that slowly changes shape ---------- */
+    .yeast {
+      position: relative;
+      border: 0;
+      background: var(--mint);
+      color: var(--dark);
+      padding: 9px 18px;
+      font-size: 13px;
+      border-radius: 62% 38% 54% 46% / 55% 48% 52% 45%;
+      animation: yeast 8s ease-in-out infinite;
+      transition: transform .2s
+    }
+
+    .yeast::after {
+      content: "";
+      position: absolute;
+      right: -6px;
+      top: -4px;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: inherit;
+      transition: transform .35s cubic-bezier(.3, 1.6, .5, 1)
+    }
+
+    .yeast:hover::after {
+      transform: translate(4px, -3px) scale(1.35)
+    }
+
+    .yeast:active {
+      transform: scale(.94)
+    }
+
+    .yeast.lav {
+      background: var(--lav)
+    }
+
+    .yeast.ghost {
+      background: #2a2a2a;
+      color: var(--ink)
+    }
+
+    .yeast:nth-of-type(2n) {
+      animation-delay: -3s
+    }
+
+    .yeast:nth-of-type(2n)::after {
+      right: auto;
+      left: -5px;
+      top: auto;
+      bottom: -4px;
+      width: 11px;
+      height: 11px
+    }
+
+    @keyframes yeast {
+
+      0%,
+      100% {
+        border-radius: 62% 38% 54% 46% / 55% 48% 52% 45%
+      }
+
+      50% {
+        border-radius: 44% 56% 40% 60% / 47% 58% 42% 53%
+      }
+    }
+
+    /* ---------- header ---------- */
+    .top {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      padding: 16px 20px;
+      z-index: 1000;
+      pointer-events: none
+    }
+
+    .top>* {
+      pointer-events: auto
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-right: auto;
+      background: rgba(60, 60, 60, .75);
+      padding: 6px 14px 6px 10px;
+      border-radius: 6px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px)
+    }
+
+    .mark {
+      position: relative;
+      width: 16px;
+      height: 14px;
+      border-radius: 55% 45% 50% 50%;
+      background: #fff;
+      animation: breathe var(--breath) ease-in-out infinite
+    }
+
+    .mark::after {
+      content: "";
+      position: absolute;
+      right: -5px;
+      top: -3px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #fff
+    }
+
+    @keyframes breathe {
+      50% {
+        transform: scale(1.08)
+      }
+    }
+
+    .brand h1 {
+      font-size: 15px;
+      font-weight: 400;
+      margin: 0;
+      letter-spacing: .02em
+    }
+
+    .temp {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--soft);
+      font-size: 12px
+    }
+
+    .temp b {
+      color: var(--ink);
+      font-weight: 400
+    }
+
+    .bar {
+      width: 48px;
+      height: 2px;
+      background: #333
+    }
+
+    .bar i {
+      display: block;
+      height: 100%;
+      width: 30%;
+      background: #fff;
+      transition: width 1s
+    }
+
+    nav {
+      display: flex;
+      gap: 12px
+    }
+
+    .foot {
+      position: fixed;
+      left: 20px;
+      bottom: 16px;
+      z-index: 900;
+      font-size: 11px;
+      color: #666;
+      line-height: 1.7
+    }
+
+    .foot a {
+      color: inherit;
+      cursor: pointer;
+      text-decoration: underline
+    }
+
+    .placebar {
+      position: fixed;
+      left: 50%;
+      top: 76px;
+      transform: translateX(-50%);
+      z-index: 1100;
+      background: rgba(60, 60, 60, .85);
+      border-radius: 6px;
+      padding: 6px 6px 6px 14px;
+      display: none;
+      align-items: center;
+      gap: 12px;
+      white-space: nowrap;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px)
+    }
+
+    body.placing .placebar {
+      display: flex
+    }
+
+    .placebar .yeast {
+      padding: 6px 13px;
+      font-size: 12px
+    }
+
+    /* ---------- cities ---------- */
+    .city-icon {
+      background: none;
+      border: 0
+    }
+
+    .city {
+      position: absolute;
+      left: -6px;
+      top: -6px;
+      width: 12px;
+      height: 12px
+    }
+
+    .city i {
+      position: absolute;
+      inset: 3px;
+      border-radius: 50%;
+      background: #111;
+      box-shadow: 0 0 0 1.5px #fff;
+      transition: transform .2s
+    }
+
+    .city span {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      white-space: nowrap;
+      font-size: 11.5px;
+      background: var(--mint);
+      color: var(--dark);
+      padding: 0 6px;
+      border-radius: 2px;
+      transition: background .2s
+    }
+
+    .city::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 40px;
+      height: 40px;
+      margin: -20px 0 0 -20px;
+      border-radius: 50%;
+      border: 1.5px dashed #111;
+      opacity: 0;
+      transform: scale(.4);
+      transition: all .25s
+    }
+
+    .city.has span {
+      display: none
+    }
+
+    .city.near i {
+      transform: scale(1.6)
+    }
+
+    .city.near::after {
+      opacity: 1;
+      transform: scale(1);
+      animation: spin 8s linear infinite
+    }
+
+    .city.near span {
+      display: block;
+      background: #fff
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    /* ---------- spores ---------- */
+    .spore-icon {
+      background: none;
+      border: 0
+    }
+
+    .spore {
+      position: absolute;
+      animation: breathe var(--breath) ease-in-out infinite;
+      animation-delay: var(--d)
+    }
+
+    .spore .ph {
+      position: absolute;
+      inset: 0;
+      border-radius: 2px;
+      background: #333 center/cover
+    }
+
+    .spore .lb {
+      position: absolute;
+      left: 50%;
+      top: 100%;
+      transform: translateX(-50%);
+      margin-top: 5px;
+      white-space: nowrap;
+      font-size: 11.5px;
+      background: var(--lav);
+      color: var(--dark);
+      padding: 0 6px;
+      border-radius: 2px;
+      pointer-events: none
+    }
+
+    .spore.dormant {
+      animation: none
+    }
+
+    .spore.dormant .ph {
+      filter: grayscale(1);
+      opacity: .45
+    }
+
+    .spore.dormant .lb {
+      background: #555;
+      color: #ccc
+    }
+
+    .spore.sel .ph {
+      outline: 1px solid #fff;
+      outline-offset: 3px
+    }
+
+    .spore.linkfrom .ph {
+      outline: 1px dashed #fff;
+      outline-offset: 3px
+    }
+
+    /* ---------- panel ---------- */
+    .panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 400px;
+      max-width: 100%;
+      background: var(--panel);
+      border-left: 1px solid var(--line);
+      z-index: 1200;
+      transform: translateX(105%);
+      transition: transform .35s cubic-bezier(.2, .8, .2, 1);
+      overflow-y: auto
+    }
+
+    .panel.open {
+      transform: none
+    }
+
+    .close {
+      position: sticky;
+      top: 12px;
+      float: right;
+      margin: 12px;
+      width: 34px;
+      height: 30px;
+      padding: 0;
+      font-size: 16px;
+      z-index: 2
+    }
+
+    .hero {
+      width: 100%;
+      aspect-ratio: 4/3;
+      object-fit: cover;
+      display: block
+    }
+
+    .pbody {
+      padding: 20px 22px 32px
+    }
+
+    .pbody h2 {
+      font-size: 20px;
+      font-weight: 400;
+      margin: 0 0 10px
+    }
+
+    .meta {
+      font-size: 11.5px;
+      color: var(--soft);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 12px;
+      align-items: center
+    }
+
+    .chip {
+      font-size: 11px;
+      padding: 0 6px;
+      border-radius: 2px;
+      background: var(--mint);
+      color: var(--dark)
+    }
+
+    .chip.dormant {
+      background: #555;
+      color: #ddd
+    }
+
+    .chip.ripe {
+      background: var(--lav)
+    }
+
+    .recipe {
+      font-size: 13.5px;
+      line-height: 1.75;
+      margin: 16px 0;
+      white-space: pre-wrap
+    }
+
+    .by {
+      font-size: 11.5px;
+      color: var(--soft);
+      margin-top: 6px
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 20px 0
+    }
+
+    .actions .yeast {
+      padding: 7px 14px;
+      font-size: 12px
+    }
+
+    .actions .yeast.on {
+      background: #fff
+    }
+
+    h3 {
+      font-size: 11px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--soft);
+      margin: 24px 0 10px;
+      font-weight: 400
+    }
+
+    .links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px
+    }
+
+    .links button {
+      border: 0;
+      background: var(--lav);
+      color: var(--dark);
+      padding: 0 6px 0 0;
+      border-radius: 2px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px
+    }
+
+    .links button i {
+      width: 20px;
+      height: 20px;
+      background-size: cover;
+      background-position: center
+    }
+
+    .empty {
+      font-size: 12px;
+      color: var(--soft)
+    }
+
+    .comment {
+      padding: 12px 0;
+      border-top: 1px solid var(--line)
+    }
+
+    .comment .who {
+      font-size: 11.5px;
+      color: var(--soft)
+    }
+
+    .comment .who b {
+      color: var(--ink);
+      font-weight: 400;
+      margin-right: 8px
+    }
+
+    .cdel {
+      float: right;
+      border: 0;
+      background: none;
+      padding: 0;
+      color: var(--soft);
+      font-size: 11px;
+      text-decoration: underline
+    }
+
+    .cdel:hover {
+      color: #f2a0a0
+    }
+
+    .yeast.danger {
+      background: #f2b4b4
+    }
+
+    .comment p {
+      margin: 4px 0 0;
+      font-size: 13px;
+      line-height: 1.6;
+      white-space: pre-wrap
+    }
+
+    .comment img {
+      width: 100%;
+      margin-top: 8px;
+      display: block
+    }
+
+    form.feed {
+      margin-top: 14px;
+      display: grid;
+      gap: 8px
+    }
+
+    input[type=text],
+    textarea {
+      font: inherit;
+      font-size: 13px;
+      width: 100%;
+      padding: 9px 11px;
+      border-radius: 2px;
+      border: 1px solid #3a3a3a;
+      background: var(--bg);
+      color: var(--ink)
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 72px
+    }
+
+    input:focus,
+    textarea:focus {
+      outline: 1px solid var(--mint);
+      outline-offset: -1px
+    }
+
+    ::placeholder {
+      color: #666
+    }
+
+    .row2 {
+      display: flex;
+      gap: 8px;
+      align-items: center
+    }
+
+    .row2 label {
+      font-size: 12px;
+      color: var(--soft);
+      flex: 1
+    }
+
+    /* ---------- archive ---------- */
+    .list {
+      position: fixed;
+      inset: 0;
+      z-index: 1050;
+      background: var(--bg);
+      overflow-y: auto;
+      display: none;
+      padding: 80px 20px 48px
+    }
+
+    .list.open {
+      display: block
+    }
+
+    .wrap {
+      max-width: 1040px;
+      margin: 0 auto
+    }
+
+    .list input {
+      max-width: 420px;
+      margin-bottom: 20px
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 18px
+    }
+
+    .card {
+      background: none;
+      border: 0;
+      text-align: left;
+      padding: 0
+    }
+
+    .card img {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      display: block
+    }
+
+    .card.dormant img {
+      filter: grayscale(1);
+      opacity: .5
+    }
+
+    .card h4 {
+      display: inline-block;
+      margin: 8px 0 4px;
+      font-size: 12px;
+      font-weight: 400;
+      background: var(--lav);
+      color: var(--dark);
+      padding: 0 6px;
+      border-radius: 2px
+    }
+
+    .card .st {
+      font-size: 11px;
+      color: var(--soft)
+    }
+
+    /* ---------- manifesto ---------- */
+    .manifesto {
+      position: fixed;
+      inset: 0;
+      z-index: 1050;
+      background: var(--bg);
+      overflow-y: auto;
+      display: none;
+      padding: 110px 20px 64px
+    }
+
+    .manifesto.open {
+      display: block
+    }
+
+    .manifesto .text {
+      max-width: 620px;
+      margin: 0 auto
+    }
+
+    .manifesto h2 {
+      font-size: 28px;
+      font-weight: 400;
+      margin: 0 0 28px;
+      letter-spacing: .01em
+    }
+
+    .manifesto p {
+      font-size: 15px;
+      line-height: 1.85;
+      margin: 0 0 20px
+    }
+
+    .manifesto .tenets {
+      list-style: none;
+      counter-reset: t;
+      padding: 0;
+      margin: 0 0 48px
+    }
+
+    .manifesto .tenets li {
+      counter-increment: t;
+      position: relative;
+      padding: 14px 0 14px 44px;
+      border-top: 1px solid var(--line);
+      font-size: 17px;
+      line-height: 1.6
+    }
+
+    .manifesto .tenets li:last-child {
+      border-bottom: 1px solid var(--line)
+    }
+
+    .manifesto .tenets li::before {
+      content: counter(t);
+      position: absolute;
+      left: 0;
+      top: 15px;
+      width: 24px;
+      height: 22px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--mint);
+      color: var(--dark);
+      border-radius: 55% 45% 50% 50%
+    }
+
+    .manifesto p.sign {
+      font-size: 12px;
+      color: var(--soft);
+      margin-top: 36px
+    }
+
+    #listBack,
+    #maniBackTop {
+      display: block;
+      margin: 0 0 16px;
+      padding: 7px 16px;
+      font-size: 12px
+    }
+
+    /* ---------- modal ---------- */
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1300;
+      background: rgba(0, 0, 0, .6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px
+    }
+
+    .modal.open {
+      display: flex
+    }
+
+    .box {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 22px;
+      width: 100%;
+      max-width: 420px;
+      display: grid;
+      gap: 10px;
+      max-height: 92vh;
+      overflow-y: auto
+    }
+
+    .box h2 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 400
+    }
+
+    .sub {
+      margin: 0 0 4px;
+      font-size: 11.5px;
+      color: var(--soft)
+    }
+
+    .drop {
+      border: 1px dashed #555;
+      aspect-ratio: 4/3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--soft);
+      font-size: 12px;
+      cursor: pointer;
+      background: var(--bg) center/cover no-repeat;
+      text-align: center;
+      padding: 12px
+    }
+
+    .drop.has {
+      border-style: solid;
+      color: transparent
+    }
+
+    .mrow {
+      display: flex;
+      gap: 14px;
+      justify-content: flex-end;
+      margin-top: 6px
+    }
+
+    .onboard {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 900;
+      background: rgba(24, 24, 24, .92);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 22px 24px;
+      max-width: 340px;
+      text-align: center;
+      display: none
+    }
+
+    .onboard.show {
+      display: block
+    }
+
+    .onboard h2 {
+      margin: 0 0 8px;
+      font-size: 15px;
+      font-weight: 400
+    }
+
+    .onboard p {
+      margin: 0 0 18px;
+      font-size: 12px;
+      line-height: 1.7;
+      color: var(--soft)
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 28px;
+      transform: translate(-50%, 20px);
+      opacity: 0;
+      background: #eee;
+      color: var(--dark);
+      padding: 6px 14px;
+      border-radius: 2px;
+      font-size: 12px;
+      z-index: 1400;
+      transition: all .3s;
+      pointer-events: none
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0)
+    }
+
+    @media (max-width:760px) {
+      .top {
+        padding: 12px;
+        gap: 10px
+      }
+
+      .temp {
+        order: 3
+      }
+
+      .panel {
+        top: auto;
+        width: 100%;
+        height: 80vh;
+        border-left: 0;
+        border-top: 1px solid var(--line);
+        transform: translateY(105%)
+      }
+
+      .placebar {
+        top: auto;
+        bottom: 24px
+      }
+
+      .list {
+        padding: 120px 16px 40px
+      }
+
+      .manifesto {
+        padding: 120px 16px 48px
+      }
+
+      .foot {
+        display: none
+      }
+    }
+  </style>
 </head>
+
 <body>
-<div id="globe"><canvas id="base"></canvas><canvas id="fx"></canvas><div id="pins"></div></div>
-<div class="zoom"><button class="yeast ghost" id="zin" aria-label="Zoom in">+</button><button class="yeast ghost" id="zout" aria-label="Zoom out">−</button></div>
-<div class="credit">Coastlines: Natural Earth</div>
-
-<header class="top">
-  <div class="brand"><span class="mark"></span><h1>The Fermentary</h1></div>
-  <div class="temp" title="Recent activity sets the temperature">
-    <div class="bar"><i id="tbar"></i></div><b id="tval">–</b><span id="tlabel"></span>
+  <div id="globe"><canvas id="base"></canvas><canvas id="fx"></canvas>
+    <div id="pins"></div>
   </div>
-  <nav>
-    <button class="yeast ghost" id="maniBtn">Manifesto</button>
-    <button class="yeast lav" id="viewBtn">Database</button>
-  </nav>
-</header>
+  <div class="zoom"><button class="yeast ghost" id="zin" aria-label="Zoom in">+</button><button class="yeast ghost"
+      id="zout" aria-label="Zoom out">−</button></div>
+  <div class="credit">Coastlines: Natural Earth</div>
 
-<div class="placebar" id="placebar">
-  Click a city on the globe — scroll to spin it
-  <button class="yeast" id="myLoc">Nearest to me</button><button class="yeast ghost" id="cancelPlace">Cancel</button>
-</div>
+  <header class="top">
+    <div class="brand"><span class="mark"></span>
+      <h1>The Fermentary</h1>
+    </div>
+    <div class="temp" title="Recent activity sets the temperature">
+      <div class="bar"><i id="tbar"></i></div><b id="tval">–</b><span id="tlabel"></span>
+    </div>
+    <nav>
+      <button class="yeast ghost" id="maniBtn">Manifesto</button>
+      <button class="yeast lav" id="viewBtn">Database</button>
+    </nav>
+  </header>
 
-<div class="onboard" id="onboard">
-  <h2>Nothing is growing yet</h2>
-  <p>Scroll to spin the globe, click a city and plant a photo of something fermenting.<br>Comments and links feed it.</p>
-  <button class="yeast" id="onboardBtn">Plant the first spore</button>
-</div>
-
-<div class="foot" id="foot"></div>
-<aside class="panel" id="panel"></aside>
-
-<section class="list" id="list">
-  <div class="wrap">
-    <button class="yeast" id="listBack">← Back to globe</button>
-    <input type="text" id="search" placeholder="Search — kimchi, koji, a city, a name…">
-    <div class="grid" id="grid"></div>
+  <div class="placebar" id="placebar">
+    Click a city on the globe — scroll to spin it
+    <button class="yeast" id="myLoc">Nearest to me</button><button class="yeast ghost" id="cancelPlace">Cancel</button>
   </div>
-</section>
 
-<section class="manifesto" id="manifesto">
-  <article class="text">
-    <button class="yeast" id="maniBackTop">← Back to globe</button>
-    <h2>Manifesto</h2>
-    <ol class="tenets">
-      <li>This website is not a page. It is an organism.</li>
-      <li>It feeds on data/stories.</li>
-      <li>It grows as much as it eats.</li>
-      <li>When it cannot feed, it stops.</li>
-      <li>The artist/maker writes only the rules. The artist/maker does not write the form.</li>
-      <li>The process of sharing stories is the work.</li>
-    </ol>
-    <p>For a long time, the web has been understood as a container for information.</p>
-    <p>This work overturns it. Here, the website just lives.</p>
-    <p>The site takes interaction (uploading recipes, stories) as nourishment (growing web).</p>
-    <p>The artist/maker does not design its shape.<br>The artist/maker defines only the rules of growth and decay.</p>
-    <p>A website is an organism.</p>
-    <p>Visitors are not viewers but feeders, their attention and intervention (interaction with the web) become the conditions of the organism's growth.</p>
-    <p class="sign">The Fermentary</p>
-  </article>
-</section>
+  <div class="onboard" id="onboard">
+    <h2>Nothing is growing yet</h2>
+    <p>Scroll to spin the globe, click a city and plant a photo of something fermenting.<br>Comments and links feed it.
+    </p>
+    <button class="yeast" id="onboardBtn">Plant the first spore</button>
+  </div>
 
-<div class="modal" id="modal">
-  <form class="box" id="newForm">
-    <h2>Plant a spore</h2>
-    <p class="sub" id="placeInfo"></p>
-    <label class="drop" id="drop">Choose a photo (required)<input type="file" name="photo" accept="image/*" hidden></label>
-    <input type="text" name="title" placeholder="What is it?" required maxlength="40">
-    <textarea name="body" placeholder="Recipe, ratios, temperature, timing, the story…" rows="4"></textarea>
-    <input type="text" name="who" placeholder="Your name" maxlength="20">
-    <div class="mrow"><button type="button" class="yeast ghost" id="cancelNew">Cancel</button><button class="yeast" id="plantBtn">Plant</button></div>
-  </form>
-</div>
+  <div class="foot" id="foot"></div>
+  <aside class="panel" id="panel"></aside>
 
-<div class="toast" id="toast"></div>
-<input type="file" id="photoInput" accept="image/*" hidden>
+  <section class="list" id="list">
+    <div class="wrap">
+      <button class="yeast" id="listBack">← Back to globe</button>
+      <input type="text" id="search" placeholder="Search — kimchi, koji, a city, a name…">
+      <div class="grid" id="grid"></div>
+    </div>
+  </section>
 
-<script type="text/plain" id="city-data">
+  <section class="manifesto" id="manifesto">
+    <article class="text">
+      <button class="yeast" id="maniBackTop">← Back to globe</button>
+      <h2>Manifesto</h2>
+      <ol class="tenets">
+        <li>This website is not a page. It is an organism.</li>
+        <li>It feeds on data/stories.</li>
+        <li>It grows as much as it eats.</li>
+        <li>When it cannot feed, it stops.</li>
+        <li>The artist/maker writes only the rules. The artist/maker does not write the form.</li>
+        <li>The process of sharing stories is the work.</li>
+      </ol>
+      <p>For a long time, the web has been understood as a container for information.</p>
+      <p>This work overturns it. Here, the website just lives.</p>
+      <p>The site takes interaction (uploading recipes, stories) as nourishment (growing web).</p>
+      <p>The artist/maker does not design its shape.<br>The artist/maker defines only the rules of growth and decay.</p>
+      <p>A website is an organism.</p>
+      <p>Visitors are not viewers but feeders, their attention and intervention (interaction with the web) become the
+        conditions of the organism's growth.</p>
+      <p class="sign">The Fermentary</p>
+    </article>
+  </section>
+
+  <div class="modal" id="modal">
+    <form class="box" id="newForm">
+      <h2>Plant a spore</h2>
+      <p class="sub" id="placeInfo"></p>
+      <label class="drop" id="drop">Choose a photo (required)<input type="file" name="photo" accept="image/*"
+          hidden></label>
+      <input type="text" name="title" placeholder="What is it?" required maxlength="40">
+      <textarea name="body" placeholder="Recipe, ratios, temperature, timing, the story…" rows="4"></textarea>
+      <input type="text" name="who" placeholder="Your name" maxlength="20">
+      <div class="mrow"><button type="button" class="yeast ghost" id="cancelNew">Cancel</button><button class="yeast"
+          id="plantBtn">Plant</button></div>
+    </form>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <input type="file" id="photoInput" accept="image/*" hidden>
+
+  <script type="text/plain" id="city-data">
 Tokyo|Japan|35.687|139.749|0
 New York|United States of America|40.722|-73.996|0
 Mexico City|Mexico|19.444|-99.133|0
@@ -7538,613 +8358,629 @@ Santo António|Sao Tome and Principe|1.645|7.412|10
 Dhuusa Mareeb|Somalia|5.532|46.382|10
 Agdam|Azerbaijan|40.905|45.556|10
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script>
-(() => {
-/* ================= SETTINGS — paste your Supabase project values here =================
-   Supabase dashboard → Project Settings → API.
-   The "anon public" key is meant to be public; it is safe in this file.
-   NEVER paste the "service_role" key here.                                              */
-const SUPABASE_URL = '';        // e.g. 'https://abcdefghijkl.supabase.co'
-const SUPABASE_ANON_KEY = '';   // e.g. 'eyJhbGciOi...'
-/* ===================================================================================== */
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+  <script>
+    (() => {
+      /* ================= SETTINGS — paste your Supabase project values here =================
+         Supabase dashboard → Project Settings → API.
+         The "anon public" key is meant to be public; it is safe in this file.
+         NEVER paste the "service_role" key here.                                              */
+      const SUPABASE_URL = '';        // e.g. 'https://abcdefghijkl.supabase.co'
+      const SUPABASE_ANON_KEY = '';   // e.g. 'eyJhbGciOi...'
+      /* ===================================================================================== */
 
-const sb = SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
-const LIVE = !!sb;   // shared database when configured; otherwise traces stay in this browser only
+      const sb = SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+      const LIVE = !!sb;   // shared database when configured; otherwise traces stay in this browser only
 
-const LS = 'hyokyosil-map-v1', NAME_LS = 'hyokyosil-name';
-const MIN = 60e3, HOUR = 3600e3, DAY = 86400e3;
-const DORMANT_AFTER = 3 * DAY;
-const HEAT_TAU = 30 * MIN;
-const ANON = 'Anonymous';
+      const LS = 'hyokyosil-map-v1', NAME_LS = 'hyokyosil-name';
+      const MIN = 60e3, HOUR = 3600e3, DAY = 86400e3;
+      const DORMANT_AFTER = 3 * DAY;
+      const HEAT_TAU = 30 * MIN;
+      const ANON = 'Anonymous';
 
-/* ---------- cities: Natural Earth populated places, biggest first (r = 0 biggest … 10 smallest) ---------- */
-const CITIES = document.getElementById('city-data').textContent.trim().split('\n').map(line => {
-  const [name, country, lat, lng, r] = line.split('|');
-  return { name, country, lat: +lat, lng: +lng, r: +r, key: name + '|' + country };
-});
-const cityByName = (name, country) => CITIES.find(c => c.name === name && (!country || c.country === country));
+      /* ---------- cities: Natural Earth populated places, biggest first (r = 0 biggest … 10 smallest) ---------- */
+      const CITIES = document.getElementById('city-data').textContent.trim().split('\n').map(line => {
+        const [name, country, lat, lng, r] = line.split('|');
+        return { name, country, lat: +lat, lng: +lng, r: +r, key: name + '|' + country };
+      });
+      const cityByName = (name, country) => CITIES.find(c => c.name === name && (!country || c.country === country));
 
-/* ---------- helpers ---------- */
-const $ = id => document.getElementById(id);
-let S = { nodes: [], edges: [], events: [] };
-let loaded = false;
-const byId = id => S.nodes.find(n => n.id === id);
-const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const isDormant = n => Date.now() - n.lastFed > DORMANT_AFTER;
-const ripeness = n => Math.min(1, n.energy / 30);
-const sizeOf = n => Math.round(28 + Math.min(40, Math.sqrt(n.energy) * 6));
-const placeOf = n => n.city ? `${n.city}, ${n.country}` : '';
-const seedOf = id => { let h = 0; for (const ch of String(id)) h = (h * 31 + ch.charCodeAt(0)) | 0; return (h >>> 0) / 4294967296; };
-const newName = () => crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
-function ago(t){
-  const d = Date.now() - t;
-  if (d < MIN) return 'just now'; if (d < HOUR) return Math.floor(d/MIN) + 'm ago';
-  if (d < DAY) return Math.floor(d/HOUR) + 'h ago'; return Math.floor(d/DAY) + 'd ago';
-}
-let toastT;
-function toast(msg, ms = 2600){ const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), ms); }
-const getName = () => { try{ return localStorage.getItem(NAME_LS) || ''; }catch(e){ return ''; } };
-const setName = v => { try{ localStorage.setItem(NAME_LS, v); }catch(e){} };
-function readImg(file, max, q){
-  return new Promise((res, rej) => {
-    const fr = new FileReader();
-    fr.onload = () => { const im = new Image();
-      im.onload = () => { const s = Math.min(1, max / Math.max(im.width, im.height)); const c = document.createElement('canvas');
-        c.width = Math.round(im.width * s); c.height = Math.round(im.height * s); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
-        res(c.toDataURL('image/jpeg', q)); };
-      im.onerror = rej; im.src = fr.result; };
-    fr.onerror = rej; fr.readAsDataURL(file);
-  });
-}
-// spores sharing a city spiral out around it so they don't stack
-function spotIn(c){
-  const k = S.nodes.filter(n => n.city === c.name && n.country === c.country).length, ang = k * 2.4, rad = k ? .5 * Math.sqrt(k) : 0;
-  return { lat: c.lat + rad * Math.sin(ang), lng: c.lng + rad * Math.cos(ang) / Math.cos(c.lat * Math.PI / 180) };
-}
+      /* ---------- helpers ---------- */
+      const $ = id => document.getElementById(id);
+      let S = { nodes: [], edges: [], events: [] };
+      let loaded = false;
+      const byId = id => S.nodes.find(n => n.id === id);
+      const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+      const isDormant = n => Date.now() - n.lastFed > DORMANT_AFTER;
+      const ripeness = n => Math.min(1, n.energy / 30);
+      const sizeOf = n => Math.round(28 + Math.min(40, Math.sqrt(n.energy) * 6));
+      const placeOf = n => n.city ? `${n.city}, ${n.country}` : '';
+      const seedOf = id => { let h = 0; for (const ch of String(id)) h = (h * 31 + ch.charCodeAt(0)) | 0; return (h >>> 0) / 4294967296; };
+      const newName = () => crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
+      function ago(t) {
+        const d = Date.now() - t;
+        if (d < MIN) return 'just now'; if (d < HOUR) return Math.floor(d / MIN) + 'm ago';
+        if (d < DAY) return Math.floor(d / HOUR) + 'h ago'; return Math.floor(d / DAY) + 'd ago';
+      }
+      let toastT;
+      function toast(msg, ms = 2600) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), ms); }
+      const getName = () => { try { return localStorage.getItem(NAME_LS) || ''; } catch (e) { return ''; } };
+      const setName = v => { try { localStorage.setItem(NAME_LS, v); } catch (e) { } };
+      function readImg(file, max, q) {
+        return new Promise((res, rej) => {
+          const fr = new FileReader();
+          fr.onload = () => {
+            const im = new Image();
+            im.onload = () => {
+              const s = Math.min(1, max / Math.max(im.width, im.height)); const c = document.createElement('canvas');
+              c.width = Math.round(im.width * s); c.height = Math.round(im.height * s); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+              res(c.toDataURL('image/jpeg', q));
+            };
+            im.onerror = rej; im.src = fr.result;
+          };
+          fr.onerror = rej; fr.readAsDataURL(file);
+        });
+      }
+      // spores sharing a city spiral out around it so they don't stack
+      function spotIn(c) {
+        const k = S.nodes.filter(n => n.city === c.name && n.country === c.country).length, ang = k * 2.4, rad = k ? .5 * Math.sqrt(k) : 0;
+        return { lat: c.lat + rad * Math.sin(ang), lng: c.lng + rad * Math.cos(ang) / Math.cos(c.lat * Math.PI / 180) };
+      }
 
-/* ---------- local-only storage (used until Supabase is configured) ---------- */
-function loadLocal(){ try{ const r = localStorage.getItem(LS); return r ? JSON.parse(r) : null; }catch(e){ return null; } }
-let saveTimer;
-function save(){
-  if (LIVE) return;
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => {
-    try{ localStorage.setItem(LS, JSON.stringify(S)); }
-    catch(e){ toast('Browser storage is full'); }
-  }, 300);
-}
+      /* ---------- local-only storage (used until Supabase is configured) ---------- */
+      function loadLocal() { try { const r = localStorage.getItem(LS); return r ? JSON.parse(r) : null; } catch (e) { return null; } }
+      let saveTimer;
+      function save() {
+        if (LIVE) return;
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(() => {
+          try { localStorage.setItem(LS, JSON.stringify(S)); }
+          catch (e) { toast('Browser storage is full'); }
+        }, 300);
+      }
 
-/* ---------- shared database (Supabase) ---------- */
-const pub = p => p ? `${SUPABASE_URL}/storage/v1/object/public/photos/${p}` : null;
-const fromSpore = r => ({ id: r.id, owner: r.owner, title: r.title, body: r.body, who: r.who, lat: r.lat, lng: r.lng, city: r.city, country: r.country,
-  img: pub(r.img_path), thumb: pub(r.thumb_path), imgPath: r.img_path, thumbPath: r.thumb_path,
-  energy: r.energy, born: Date.parse(r.born), lastFed: Date.parse(r.last_fed), phase: seedOf(r.id) * 3 });
-const fromComment = r => ({ id: r.id, owner: r.owner, sporeId: r.spore_id, who: r.who, text: r.text, img: pub(r.img_path), imgPath: r.img_path, t: Date.parse(r.created_at) });
-// only the browser that planted / wrote something can delete it (in local mode, everything here is yours)
-const mine = x => !LIVE || (!!uid && x.owner === uid);
-const fromEdge = r => ({ id: r.id, a: r.a, b: r.b, strength: r.strength, seed: seedOf(r.id) * 10 });
+      /* ---------- shared database (Supabase) ---------- */
+      const pub = p => p ? `${SUPABASE_URL}/storage/v1/object/public/photos/${p}` : null;
+      const fromSpore = r => ({
+        id: r.id, owner: r.owner, title: r.title, body: r.body, who: r.who, lat: r.lat, lng: r.lng, city: r.city, country: r.country,
+        img: pub(r.img_path), thumb: pub(r.thumb_path), imgPath: r.img_path, thumbPath: r.thumb_path,
+        energy: r.energy, born: Date.parse(r.born), lastFed: Date.parse(r.last_fed), phase: seedOf(r.id) * 3
+      });
+      const fromComment = r => ({ id: r.id, owner: r.owner, sporeId: r.spore_id, who: r.who, text: r.text, img: pub(r.img_path), imgPath: r.img_path, t: Date.parse(r.created_at) });
+      // only the browser that planted / wrote something can delete it (in local mode, everything here is yours)
+      const mine = x => !LIVE || (!!uid && x.owner === uid);
+      const fromEdge = r => ({ id: r.id, a: r.a, b: r.b, strength: r.strength, seed: seedOf(r.id) * 10 });
 
-let uid = null;
-async function ensureAuth(){
-  if (uid) return uid;
-  const { data: { session } } = await sb.auth.getSession();
-  if (session) return uid = session.user.id;
-  const { data, error } = await sb.auth.signInAnonymously();
-  if (error) throw new Error(/anonymous/i.test(error.message) ? 'anonymous sign-ins are turned off in Supabase' : error.message);
-  return uid = data.user.id;
-}
-async function upload(path, dataUrl){
-  const blob = await (await fetch(dataUrl)).blob();
-  const { error } = await sb.storage.from('photos').upload(path, blob, { contentType: 'image/jpeg' });
-  if (error) throw error;
-}
-async function refetchSpores(ids){
-  const { data } = await sb.from('spores').select('*').in('id', ids);
-  (data || []).forEach(r => applySpore(fromSpore(r)));
-}
-async function loadRemote(){
-  const since = new Date(Date.now() - 6 * HOUR).toISOString();
-  const [sp, cm, hy, ac] = await Promise.all([
-    sb.from('spores').select('*').order('born'),
-    sb.from('comments').select('*').order('created_at'),
-    sb.from('hyphae').select('*'),
-    sb.from('activity').select('created_at,spore_id').gte('created_at', since)
-  ]);
-  const err = sp.error || cm.error || hy.error || ac.error; if (err) throw err;
-  if (!uid){ const { data: { session } } = await sb.auth.getSession(); uid = session?.user.id || null; }
-  const keep = current?.id;
-  markers.forEach(m => m.remove()); markers.clear();
-  S = { nodes: sp.data.map(r => ({ ...fromSpore(r), comments: [] })), edges: hy.data.map(r => ({ ...fromEdge(r), p: 1 })),
-        events: ac.data.map(r => Date.parse(r.created_at)) };
-  for (const r of cm.data){ const c = fromComment(r); byId(c.sporeId)?.comments.push(c); }
-  current = keep ? byId(keep) || null : null;
-  if (keep && !current) $('panel').classList.remove('open');
-  refreshAll(); updateTemp();
-  if (current) softRender(current);
-}
-function subscribe(){
-  sb.channel('organism')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'spores' },
-      p => p.eventType === 'DELETE' ? removeSpore(p.old.id) : applySpore(fromSpore(p.new)))
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'comments' },
-      p => p.eventType === 'DELETE' ? removeComment(p.old.id) : applyComment(fromComment(p.new)))
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'hyphae' },
-      p => { if (p.eventType !== 'DELETE') applyEdge(fromEdge(p.new), true); })
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activity' },
-      p => applyActivity(Date.parse(p.new.created_at), p.new.spore_id))
-    .subscribe();
-}
+      let uid = null;
+      async function ensureAuth() {
+        if (uid) return uid;
+        const { data: { session } } = await sb.auth.getSession();
+        if (session) return uid = session.user.id;
+        const { data, error } = await sb.auth.signInAnonymously();
+        if (error) throw new Error(/anonymous/i.test(error.message) ? 'anonymous sign-ins are turned off in Supabase' : error.message);
+        return uid = data.user.id;
+      }
+      async function upload(path, dataUrl) {
+        const blob = await (await fetch(dataUrl)).blob();
+        const { error } = await sb.storage.from('photos').upload(path, blob, { contentType: 'image/jpeg' });
+        if (error) throw error;
+      }
+      async function refetchSpores(ids) {
+        const { data } = await sb.from('spores').select('*').in('id', ids);
+        (data || []).forEach(r => applySpore(fromSpore(r)));
+      }
+      async function loadRemote() {
+        const since = new Date(Date.now() - 6 * HOUR).toISOString();
+        const [sp, cm, hy, ac] = await Promise.all([
+          sb.from('spores').select('*').order('born'),
+          sb.from('comments').select('*').order('created_at'),
+          sb.from('hyphae').select('*'),
+          sb.from('activity').select('created_at,spore_id').gte('created_at', since)
+        ]);
+        const err = sp.error || cm.error || hy.error || ac.error; if (err) throw err;
+        if (!uid) { const { data: { session } } = await sb.auth.getSession(); uid = session?.user.id || null; }
+        const keep = current?.id;
+        markers.forEach(m => m.remove()); markers.clear();
+        S = {
+          nodes: sp.data.map(r => ({ ...fromSpore(r), comments: [] })), edges: hy.data.map(r => ({ ...fromEdge(r), p: 1 })),
+          events: ac.data.map(r => Date.parse(r.created_at))
+        };
+        for (const r of cm.data) { const c = fromComment(r); byId(c.sporeId)?.comments.push(c); }
+        current = keep ? byId(keep) || null : null;
+        if (keep && !current) $('panel').classList.remove('open');
+        refreshAll(); updateTemp();
+        if (current) softRender(current);
+      }
+      function subscribe() {
+        sb.channel('organism')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'spores' },
+            p => p.eventType === 'DELETE' ? removeSpore(p.old.id) : applySpore(fromSpore(p.new)))
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'comments' },
+            p => p.eventType === 'DELETE' ? removeComment(p.old.id) : applyComment(fromComment(p.new)))
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'hyphae' },
+            p => { if (p.eventType !== 'DELETE') applyEdge(fromEdge(p.new), true); })
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activity' },
+            p => applyActivity(Date.parse(p.new.created_at), p.new.spore_id))
+          .subscribe();
+      }
 
-/* ---------- applying changes (from me or from anyone else) ---------- */
-function applySpore(row){
-  let n = byId(row.id);
-  if (n){
-    const woke = isDormant(n) && Date.now() - row.lastFed < DORMANT_AFTER;
-    Object.assign(n, row);
-    if (woke) toast(`"${n.title}" woke up from dormancy`);
-  } else { n = { ...row, comments: [] }; S.nodes.push(n); }
-  refreshMarker(n); refreshCities(); softRender(n); updateTemp();
-  return n;
-}
-function removeSpore(id){
-  const n = byId(id); if (!n) return;
-  S.nodes = S.nodes.filter(x => x !== n); S.edges = S.edges.filter(e => e.a !== id && e.b !== id);
-  markers.get(id)?.remove(); markers.delete(id);
-  if (current === n) closePanel();
-  refreshCities(); updateTemp();
-}
-function removeComment(id){
-  const n = S.nodes.find(x => x.comments.some(c => c.id === id)); if (!n) return;
-  n.comments = n.comments.filter(c => c.id !== id);
-  refreshMarker(n); softRender(n);
-}
-function applyComment(c){
-  const n = byId(c.sporeId); if (!n || n.comments.some(x => x.id === c.id)) return;
-  n.comments.push(c); n.comments.sort((a, b) => a.t - b.t);
-  refreshMarker(n); softRender(n);
-}
-function applyEdge(e, fresh){
-  const old = S.edges.find(x => x.id === e.id || (x.a === e.a && x.b === e.b) || (x.a === e.b && x.b === e.a));
-  if (old) old.strength = e.strength; else S.edges.push({ ...e, p: fresh ? 0 : 1 });
-  if (current) softRender(current);
-  updateTemp();
-}
-function applyActivity(t, sporeId){
-  S.events.push(t);
-  const n = sporeId && byId(sporeId); if (n) burst(n, 14);
-  updateTemp();
-}
-// re-render the open panel, but never while someone is typing in it
-function softRender(n){
-  if (current !== n || !$('panel').classList.contains('open')) return;
-  const f = $('pForm');
-  if (f && (f.contains(document.activeElement) || f.text.value)) return;
-  renderPanel(n);
-}
+      /* ---------- applying changes (from me or from anyone else) ---------- */
+      function applySpore(row) {
+        let n = byId(row.id);
+        if (n) {
+          const woke = isDormant(n) && Date.now() - row.lastFed < DORMANT_AFTER;
+          Object.assign(n, row);
+          if (woke) toast(`"${n.title}" woke up from dormancy`);
+        } else { n = { ...row, comments: [] }; S.nodes.push(n); }
+        refreshMarker(n); refreshCities(); softRender(n); updateTemp();
+        return n;
+      }
+      function removeSpore(id) {
+        const n = byId(id); if (!n) return;
+        S.nodes = S.nodes.filter(x => x !== n); S.edges = S.edges.filter(e => e.a !== id && e.b !== id);
+        markers.get(id)?.remove(); markers.delete(id);
+        if (current === n) closePanel();
+        refreshCities(); updateTemp();
+      }
+      function removeComment(id) {
+        const n = S.nodes.find(x => x.comments.some(c => c.id === id)); if (!n) return;
+        n.comments = n.comments.filter(c => c.id !== id);
+        refreshMarker(n); softRender(n);
+      }
+      function applyComment(c) {
+        const n = byId(c.sporeId); if (!n || n.comments.some(x => x.id === c.id)) return;
+        n.comments.push(c); n.comments.sort((a, b) => a.t - b.t);
+        refreshMarker(n); softRender(n);
+      }
+      function applyEdge(e, fresh) {
+        const old = S.edges.find(x => x.id === e.id || (x.a === e.a && x.b === e.b) || (x.a === e.b && x.b === e.a));
+        if (old) old.strength = e.strength; else S.edges.push({ ...e, p: fresh ? 0 : 1 });
+        if (current) softRender(current);
+        updateTemp();
+      }
+      function applyActivity(t, sporeId) {
+        S.events.push(t);
+        const n = sporeId && byId(sporeId); if (n) burst(n, 14);
+        updateTemp();
+      }
+      // re-render the open panel, but never while someone is typing in it
+      function softRender(n) {
+        if (current !== n || !$('panel').classList.contains('open')) return;
+        const f = $('pForm');
+        if (f && (f.contains(document.activeElement) || f.text.value)) return;
+        renderPanel(n);
+      }
 
-/* ---------- actions ---------- */
-async function plantSpore(c, title, body, who, img, thumb){
-  const { lat, lng } = spotIn(c);
-  if (!LIVE){
-    const now = Date.now();
-    const n = { id: 'n' + now.toString(36) + Math.random().toString(36).slice(2, 5), title, body, who, img, thumb: img, lat, lng,
-      city: c.name, country: c.country, comments: [], energy: 2, born: now, lastFed: now, phase: Math.random() * 3 };
-    S.nodes.push(n); S.events.push(now); refreshMarker(n); refreshCities(); save(); updateTemp();
-    return n;
-  }
-  const me = await ensureAuth(), name = newName();
-  const img_path = `${me}/${name}.jpg`, thumb_path = `${me}/${name}-t.jpg`;
-  await Promise.all([upload(img_path, img), upload(thumb_path, thumb)]);
-  const { data, error } = await sb.from('spores')
-    .insert({ title, body, who, lat, lng, city: c.name, country: c.country, img_path, thumb_path }).select().single();
-  if (error) throw error;
-  return applySpore(fromSpore(data));
-}
-function feedLocal(n, amount){
-  const woke = isDormant(n);
-  n.energy += amount; n.lastFed = Date.now(); S.events.push(Date.now());
-  burst(n, 6 + amount * 2); refreshMarker(n); save(); updateTemp();
-  if (woke) toast(`"${n.title}" woke up from dormancy`);
-}
-async function postComment(n, who, text, img){
-  const amount = img ? 5 : 3;
-  if (!LIVE){
-    n.comments.push({ id: 'c' + newName(), who, text, t: Date.now(), img });
-    feedLocal(n, amount); return;
-  }
-  const me = await ensureAuth(); let img_path = null;
-  if (img){ img_path = `${me}/${newName()}.jpg`; await upload(img_path, img); }
-  const { data, error } = await sb.from('comments').insert({ spore_id: n.id, who, text, img_path }).select().single();
-  if (error) throw error;
-  applyComment(fromComment(data)); burst(n, 6 + amount * 2);
-  await refetchSpores([n.id]);
-}
-async function linkSpores(a, b){
-  if (!LIVE){
-    const e = S.edges.find(e => (e.a === a.id && e.b === b.id) || (e.a === b.id && e.b === a.id));
-    if (e){ e.strength++; feedLocal(a, 1); feedLocal(b, 1); return 'The hypha grew thicker'; }
-    S.edges.push({ id: 'e' + newName(), a: a.id, b: b.id, p: 0, strength: 1, seed: Math.random() * 10 });
-    feedLocal(a, 2); feedLocal(b, 2); return 'A new hypha is growing';
-  }
-  await ensureAuth();
-  const { data, error } = await sb.rpc('connect_spores', { x: a.id, y: b.id });
-  if (error) throw error;
-  applyEdge(fromEdge(data), true); burst(a, 8); burst(b, 8);
-  await refetchSpores([a.id, b.id]);
-  return data.strength > 1 ? 'The hypha grew thicker' : 'A new hypha is growing';
-}
-async function deleteSpore(n){
-  if (!LIVE){ removeSpore(n.id); save(); return; }
-  const { error } = await sb.from('spores').delete().eq('id', n.id);   // comments & hyphae go with it
-  if (error) throw error;
-  const paths = [n.imgPath, n.thumbPath, ...n.comments.filter(mine).map(c => c.imgPath)].filter(Boolean);
-  removeSpore(n.id);
-  if (paths.length) sb.storage.from('photos').remove(paths).catch(() => {});
-}
-async function deleteComment(c){
-  if (!LIVE){ removeComment(c.id); save(); return; }
-  const { error } = await sb.from('comments').delete().eq('id', c.id);
-  if (error) throw error;
-  removeComment(c.id);
-  if (c.imgPath) sb.storage.from('photos').remove([c.imgPath]).catch(() => {});
-}
-const why = err => (err && (err.message || err.error_description)) || String(err);
+      /* ---------- actions ---------- */
+      async function plantSpore(c, title, body, who, img, thumb) {
+        const { lat, lng } = spotIn(c);
+        if (!LIVE) {
+          const now = Date.now();
+          const n = {
+            id: 'n' + now.toString(36) + Math.random().toString(36).slice(2, 5), title, body, who, img, thumb: img, lat, lng,
+            city: c.name, country: c.country, comments: [], energy: 2, born: now, lastFed: now, phase: Math.random() * 3
+          };
+          S.nodes.push(n); S.events.push(now); refreshMarker(n); refreshCities(); save(); updateTemp();
+          return n;
+        }
+        const me = await ensureAuth(), name = newName();
+        const img_path = `${me}/${name}.jpg`, thumb_path = `${me}/${name}-t.jpg`;
+        await Promise.all([upload(img_path, img), upload(thumb_path, thumb)]);
+        const { data, error } = await sb.from('spores')
+          .insert({ title, body, who, lat, lng, city: c.name, country: c.country, img_path, thumb_path }).select().single();
+        if (error) throw error;
+        return applySpore(fromSpore(data));
+      }
+      function feedLocal(n, amount) {
+        const woke = isDormant(n);
+        n.energy += amount; n.lastFed = Date.now(); S.events.push(Date.now());
+        burst(n, 6 + amount * 2); refreshMarker(n); save(); updateTemp();
+        if (woke) toast(`"${n.title}" woke up from dormancy`);
+      }
+      async function postComment(n, who, text, img) {
+        const amount = img ? 5 : 3;
+        if (!LIVE) {
+          n.comments.push({ id: 'c' + newName(), who, text, t: Date.now(), img });
+          feedLocal(n, amount); return;
+        }
+        const me = await ensureAuth(); let img_path = null;
+        if (img) { img_path = `${me}/${newName()}.jpg`; await upload(img_path, img); }
+        const { data, error } = await sb.from('comments').insert({ spore_id: n.id, who, text, img_path }).select().single();
+        if (error) throw error;
+        applyComment(fromComment(data)); burst(n, 6 + amount * 2);
+        await refetchSpores([n.id]);
+      }
+      async function linkSpores(a, b) {
+        if (!LIVE) {
+          const e = S.edges.find(e => (e.a === a.id && e.b === b.id) || (e.a === b.id && e.b === a.id));
+          if (e) { e.strength++; feedLocal(a, 1); feedLocal(b, 1); return 'The hypha grew thicker'; }
+          S.edges.push({ id: 'e' + newName(), a: a.id, b: b.id, p: 0, strength: 1, seed: Math.random() * 10 });
+          feedLocal(a, 2); feedLocal(b, 2); return 'A new hypha is growing';
+        }
+        await ensureAuth();
+        const { data, error } = await sb.rpc('connect_spores', { x: a.id, y: b.id });
+        if (error) throw error;
+        applyEdge(fromEdge(data), true); burst(a, 8); burst(b, 8);
+        await refetchSpores([a.id, b.id]);
+        return data.strength > 1 ? 'The hypha grew thicker' : 'A new hypha is growing';
+      }
+      async function deleteSpore(n) {
+        if (!LIVE) { removeSpore(n.id); save(); return; }
+        const { error } = await sb.from('spores').delete().eq('id', n.id);   // comments & hyphae go with it
+        if (error) throw error;
+        const paths = [n.imgPath, n.thumbPath, ...n.comments.filter(mine).map(c => c.imgPath)].filter(Boolean);
+        removeSpore(n.id);
+        if (paths.length) sb.storage.from('photos').remove(paths).catch(() => { });
+      }
+      async function deleteComment(c) {
+        if (!LIVE) { removeComment(c.id); save(); return; }
+        const { error } = await sb.from('comments').delete().eq('id', c.id);
+        if (error) throw error;
+        removeComment(c.id);
+        if (c.imgPath) sb.storage.from('photos').remove([c.imgPath]).catch(() => { });
+      }
+      const why = err => (err && (err.message || err.error_description)) || String(err);
 
-/* ---------- the globe: blue sea, white land, spun by scrolling ---------- */
-const globe = $('globe'), base = $('base'), fx = $('fx'), pins = $('pins');
-const bctx = base.getContext('2d'), ctx = fx.getContext('2d');
-const proj = d3.geoOrthographic().clipAngle(90).precision(.4);
-const bpath = d3.geoPath(proj, bctx), fpath = d3.geoPath(proj, ctx);
-const view = { lng: 100, lat: 25, zoom: 1 };          // the point facing you, and how close
-const ZMIN = 1, ZMAX = 60;
-let W = 0, H = 0, DPR = 1, R0 = 1;
-let land110 = null, land50 = null, borders = null;
-let dirty = true, lastInteract = 0, anim = null;
+      /* ---------- the globe: blue sea, white land, spun by scrolling ---------- */
+      const globe = $('globe'), base = $('base'), fx = $('fx'), pins = $('pins');
+      const bctx = base.getContext('2d'), ctx = fx.getContext('2d');
+      const proj = d3.geoOrthographic().clipAngle(90).precision(.4);
+      const bpath = d3.geoPath(proj, bctx), fpath = d3.geoPath(proj, ctx);
+      const view = { lng: 100, lat: 25, zoom: 1 };          // the point facing you, and how close
+      const ZMIN = 1, ZMAX = 60;
+      let W = 0, H = 0, DPR = 1, R0 = 1;
+      let land110 = null, land50 = null, borders = null;
+      let dirty = true, lastInteract = 0, anim = null;
 
-function resize(){
-  DPR = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight;
-  for (const c of [base, fx]){ c.width = W * DPR; c.height = H * DPR; c.style.width = W + 'px'; c.style.height = H + 'px'; }
-  R0 = Math.min(W, H) * .4; viewChanged();
-}
-function viewChanged(){ dirty = true; }
-function applyView(){ proj.rotate([-view.lng, -view.lat]).scale(R0 * view.zoom).translate([W / 2, H / 2 + 20]); }
-const clampLat = v => Math.max(-80, Math.min(80, v));
-const setZoom = z => { view.zoom = Math.max(ZMIN, Math.min(ZMAX, z)); viewChanged(); };
-const facing = (lng, lat) => d3.geoDistance([lng, lat], [view.lng, view.lat]);
-const visible = (lng, lat) => facing(lng, lat) < Math.PI / 2 - .03;
-const degPerPx = () => 180 / (Math.PI * R0 * view.zoom);
+      function resize() {
+        DPR = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight;
+        for (const c of [base, fx]) { c.width = W * DPR; c.height = H * DPR; c.style.width = W + 'px'; c.style.height = H + 'px'; }
+        R0 = Math.min(W, H) * .4; viewChanged();
+      }
+      function viewChanged() { dirty = true; }
+      function applyView() { proj.rotate([-view.lng, -view.lat]).scale(R0 * view.zoom).translate([W / 2, H / 2 + 20]); }
+      const clampLat = v => Math.max(-80, Math.min(80, v));
+      const setZoom = z => { view.zoom = Math.max(ZMIN, Math.min(ZMAX, z)); viewChanged(); };
+      const facing = (lng, lat) => d3.geoDistance([lng, lat], [view.lng, view.lat]);
+      const visible = (lng, lat) => facing(lng, lat) < Math.PI / 2 - .03;
+      const degPerPx = () => 180 / (Math.PI * R0 * view.zoom);
 
-function drawBase(){
-  applyView();
-  bctx.setTransform(DPR, 0, 0, DPR, 0, 0); bctx.clearRect(0, 0, W, H);
-  bctx.beginPath(); bpath({ type: 'Sphere' }); bctx.fillStyle = '#6fa8e0'; bctx.fill();
-  const land = view.zoom <= 3.5 ? land110 : (land50 || land110);
-  if (land){
-    bctx.beginPath(); bpath(land); bctx.fillStyle = '#fff'; bctx.fill();
-    bctx.lineWidth = .7; bctx.strokeStyle = '#4f86bd'; bctx.stroke();
-  }
-  if (borders){ bctx.beginPath(); bpath(borders); bctx.lineWidth = .5; bctx.strokeStyle = '#ccd6e0'; bctx.stroke(); }
-  bctx.beginPath(); bpath({ type: 'Sphere' }); bctx.lineWidth = 1; bctx.strokeStyle = 'rgba(255,255,255,.4)'; bctx.stroke();
-  placePins();
-}
+      function drawBase() {
+        applyView();
+        bctx.setTransform(DPR, 0, 0, DPR, 0, 0); bctx.clearRect(0, 0, W, H);
+        bctx.beginPath(); bpath({ type: 'Sphere' }); bctx.fillStyle = '#6fa8e0'; bctx.fill();
+        const land = view.zoom <= 3.5 ? land110 : (land50 || land110);
+        if (land) {
+          bctx.beginPath(); bpath(land); bctx.fillStyle = '#fff'; bctx.fill();
+          bctx.lineWidth = .7; bctx.strokeStyle = '#4f86bd'; bctx.stroke();
+        }
+        if (borders) { bctx.beginPath(); bpath(borders); bctx.lineWidth = .5; bctx.strokeStyle = '#ccd6e0'; bctx.stroke(); }
+        bctx.beginPath(); bpath({ type: 'Sphere' }); bctx.lineWidth = 1; bctx.strokeStyle = 'rgba(255,255,255,.4)'; bctx.stroke();
+        placePins();
+      }
 
-// Coastline resolution depends only on zoom level
-fetch('https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json').then(r => r.json()).then(t => {
-  land110 = topojson.feature(t, t.objects.land);
-  borders = topojson.mesh(t, t.objects.countries, (a, b) => a !== b);
-  viewChanged();
-  return fetch('https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/land-50m.json').then(r => r.json())
-    .then(t2 => {
-      land50 = topojson.feature(t2, t2.objects.land);
-      viewChanged();
-    });
-}).catch(() => toast("Couldn't draw the coastlines — cities still work"));
+      // Coastline resolution depends only on zoom level
+      fetch('https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json').then(r => r.json()).then(t => {
+        land110 = topojson.feature(t, t.objects.land);
+        borders = topojson.mesh(t, t.objects.countries, (a, b) => a !== b);
+        viewChanged();
+        return fetch('https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/land-50m.json').then(r => r.json())
+          .then(t2 => {
+            land50 = topojson.feature(t2, t2.objects.land);
+            viewChanged();
+          });
+      }).catch(() => toast("Couldn't draw the coastlines — cities still work"));
 
-/* ---------- pins: cities & spores sit on the globe as HTML ---------- */
-// ~7,300 cities: the bigger ones show from afar, smaller ones appear as you zoom in,
-// and a city only shows when its label has room (no overlapping labels)
-const cityEl = new Map();          // created lazily, the first time a city is shown
-let shown = new Set(), usedCities = new Set();
-function cityPin(c){
-  let el = cityEl.get(c);
-  if (!el){
-    el = document.createElement('div'); el.className = 'pin';
-    el.innerHTML = `<div class="city r${c.r <= 1 ? 1 : 2}"><i></i><span>${esc(c.name)}</span></div>`;
-    pins.appendChild(el); cityEl.set(c, el);
-  }
-  return el;
-}
-const maxRank = () => { const z = view.zoom; return z < 1.3 ? 1 : z < 1.8 ? 2 : z < 2.6 ? 3 : z < 3.6 ? 4 : z < 4.6 ? 6 : z < 6 ? 7 : 10; };
-function placePins(){
-  const maxR = maxRank(), boxes = [], next = new Set();
-  const fits = b => !boxes.some(o => b[0] < o[2] && b[2] > o[0] && b[1] < o[3] && b[3] > o[1]);
-  const consider = c => {
-    if (next.has(c) || !visible(c.lng, c.lat)) return;
-    const [x, y] = proj([c.lng, c.lat]);
-    if (x < -80 || x > W + 80 || y < -30 || y > H + 30) return;
-    const label = c === nearC ? `Plant in ${c.name}` : c.name;
-    const b = [x - 7, y - 9, x + 22 + label.length * 6.6, y + 9];
-    if (!fits(b)) return;
-    boxes.push(b); next.add(c);
-    const el = cityPin(c); el.style.display = ''; el.style.transform = `translate(${x}px,${y}px)`;
-    el.firstElementChild.classList.toggle('has', usedCities.has(c.key));
-  };
-  if (nearC) consider(nearC);                      // the hovered city always keeps its place
-  for (const c of CITIES){ if (c.r > maxR) break; consider(c); }
-  for (const c of shown) if (!next.has(c)) cityEl.get(c).style.display = 'none';
-  shown = next;
-  for (const n of S.nodes){
-    const el = markers.get(n.id); if (!el) continue;
-    const d = facing(n.lng, n.lat), show = d < Math.PI / 2 - .03;
-    el.style.display = show ? '' : 'none';
-    if (show){ const [x, y] = proj([n.lng, n.lat]); el.style.transform = `translate(${x}px,${y}px)`; el.style.opacity = Math.min(1, Math.cos(d) * 4).toFixed(2); }
-  }
-}
-function nearestCity(pt, maxPx){
-  let best = null, bd = maxPx;
-  for (const c of shown){
-    const p = proj([c.lng, c.lat]), d = Math.hypot(p[0] - pt[0], p[1] - pt[1]);
-    if (d < bd){ bd = d; best = c; }
-  }
-  return best;
-}
-let nearC = null;
-function setNear(c){
-  if (c === nearC) return;
-  if (nearC){ const el = cityPin(nearC).firstElementChild; el.classList.remove('near'); el.querySelector('span').textContent = nearC.name; }
-  nearC = c;
-  if (c){ const el = cityPin(c).firstElementChild; el.classList.add('near'); el.querySelector('span').textContent = `Plant in ${c.name}`; }
-  document.body.classList.toggle('oncity', !!c && !linkFrom);
-  dirty = true;
-}
-const HIT = matchMedia('(pointer:coarse)').matches ? 34 : 24;
-function refreshCities(){
-  usedCities = new Set(S.nodes.map(n => n.city + '|' + n.country));
-  dirty = true;
-}
+      /* ---------- pins: cities & spores sit on the globe as HTML ---------- */
+      // ~7,300 cities: the bigger ones show from afar, smaller ones appear as you zoom in,
+      // and a city only shows when its label has room (no overlapping labels)
+      const cityEl = new Map();          // created lazily, the first time a city is shown
+      let shown = new Set(), usedCities = new Set();
+      function cityPin(c) {
+        let el = cityEl.get(c);
+        if (!el) {
+          el = document.createElement('div'); el.className = 'pin';
+          el.innerHTML = `<div class="city r${c.r <= 1 ? 1 : 2}"><i></i><span>${esc(c.name)}</span></div>`;
+          pins.appendChild(el); cityEl.set(c, el);
+        }
+        return el;
+      }
+      const maxRank = () => { const z = view.zoom; return z < 1.3 ? 1 : z < 1.8 ? 2 : z < 2.6 ? 3 : z < 3.6 ? 4 : z < 4.6 ? 6 : z < 6 ? 7 : 10; };
+      function placePins() {
+        const maxR = maxRank(), boxes = [], next = new Set();
+        const fits = b => !boxes.some(o => b[0] < o[2] && b[2] > o[0] && b[1] < o[3] && b[3] > o[1]);
+        const consider = c => {
+          if (next.has(c) || !visible(c.lng, c.lat)) return;
+          const [x, y] = proj([c.lng, c.lat]);
+          if (x < -80 || x > W + 80 || y < -30 || y > H + 30) return;
+          const label = c === nearC ? `Plant in ${c.name}` : c.name;
+          const b = [x - 7, y - 9, x + 22 + label.length * 6.6, y + 9];
+          if (!fits(b)) return;
+          boxes.push(b); next.add(c);
+          const el = cityPin(c); el.style.display = ''; el.style.transform = `translate(${x}px,${y}px)`;
+          el.firstElementChild.classList.toggle('has', usedCities.has(c.key));
+        };
+        if (nearC) consider(nearC);                      // the hovered city always keeps its place
+        for (const c of CITIES) { if (c.r > maxR) break; consider(c); }
+        for (const c of shown) if (!next.has(c)) cityEl.get(c).style.display = 'none';
+        shown = next;
+        for (const n of S.nodes) {
+          const el = markers.get(n.id); if (!el) continue;
+          const d = facing(n.lng, n.lat), show = d < Math.PI / 2 - .03;
+          el.style.display = show ? '' : 'none';
+          if (show) { const [x, y] = proj([n.lng, n.lat]); el.style.transform = `translate(${x}px,${y}px)`; el.style.opacity = Math.min(1, Math.cos(d) * 4).toFixed(2); }
+        }
+      }
+      function nearestCity(pt, maxPx) {
+        let best = null, bd = maxPx;
+        for (const c of shown) {
+          const p = proj([c.lng, c.lat]), d = Math.hypot(p[0] - pt[0], p[1] - pt[1]);
+          if (d < bd) { bd = d; best = c; }
+        }
+        return best;
+      }
+      let nearC = null;
+      function setNear(c) {
+        if (c === nearC) return;
+        if (nearC) { const el = cityPin(nearC).firstElementChild; el.classList.remove('near'); el.querySelector('span').textContent = nearC.name; }
+        nearC = c;
+        if (c) { const el = cityPin(c).firstElementChild; el.classList.add('near'); el.querySelector('span').textContent = `Plant in ${c.name}`; }
+        document.body.classList.toggle('oncity', !!c && !linkFrom);
+        dirty = true;
+      }
+      const HIT = matchMedia('(pointer:coarse)').matches ? 34 : 24;
+      function refreshCities() {
+        usedCities = new Set(S.nodes.map(n => n.city + '|' + n.country));
+        dirty = true;
+      }
 
-const markers = new Map();
-let current = null, linkFrom = null;
-function refreshMarker(n){
-  let el = markers.get(n.id);
-  if (!el){
-    el = document.createElement('div'); el.className = 'pin spore-pin';
-    el.addEventListener('pointerdown', e => e.stopPropagation());
-    el.addEventListener('click', e => { e.stopPropagation(); onSporeClick(n.id); });
-    pins.appendChild(el); markers.set(n.id, el);
-  }
-  const s = sizeOf(n), dormant = isDormant(n);
-  const cls = ['spore', dormant ? 'dormant' : '', current === n ? 'sel' : '', linkFrom === n ? 'linkfrom' : ''].join(' ');
-  el.innerHTML = `<div class="${cls}" style="width:${s}px;height:${s}px;left:${-s/2}px;top:${-s/2}px;--d:-${(n.phase * 2).toFixed(2)}s">
+      const markers = new Map();
+      let current = null, linkFrom = null;
+      function refreshMarker(n) {
+        let el = markers.get(n.id);
+        if (!el) {
+          el = document.createElement('div'); el.className = 'pin spore-pin';
+          el.addEventListener('pointerdown', e => e.stopPropagation());
+          el.addEventListener('click', e => { e.stopPropagation(); onSporeClick(n.id); });
+          pins.appendChild(el); markers.set(n.id, el);
+        }
+        const s = sizeOf(n), dormant = isDormant(n);
+        const cls = ['spore', dormant ? 'dormant' : '', current === n ? 'sel' : '', linkFrom === n ? 'linkfrom' : ''].join(' ');
+        el.innerHTML = `<div class="${cls}" style="width:${s}px;height:${s}px;left:${-s / 2}px;top:${-s / 2}px;--d:-${(n.phase * 2).toFixed(2)}s">
     <div class="ph" style="background-image:url('${n.thumb || n.img}')"></div>
     <span class="lb">${esc(n.title)}${n.comments.length ? ' · ' + n.comments.length : ''}${dormant ? ' · dormant' : ''}</span></div>`;
-  el.style.zIndex = 10 + Math.round(n.energy);
-  dirty = true;
-}
-function refreshAll(){ S.nodes.forEach(refreshMarker); refreshCities(); }
+        el.style.zIndex = 10 + Math.round(n.energy);
+        dirty = true;
+      }
+      function refreshAll() { S.nodes.forEach(refreshMarker); refreshCities(); }
 
-function onSporeClick(id){
-  const n = byId(id); if (!n) return;
-  if (placing){ const c = cityByName(n.city, n.country); if (c) openNew(c); return; }
-  if (linkFrom && linkFrom !== n){
-    const a = linkFrom; linkFrom = null; refreshAll(); openPanel(a);
-    linkSpores(a, n).then(toast).catch(err => toast('Could not link — ' + why(err)));
-    return;
-  }
-  openPanel(n);
-}
+      function onSporeClick(id) {
+        const n = byId(id); if (!n) return;
+        if (placing) { const c = cityByName(n.city, n.country); if (c) openNew(c); return; }
+        if (linkFrom && linkFrom !== n) {
+          const a = linkFrom; linkFrom = null; refreshAll(); openPanel(a);
+          linkSpores(a, n).then(toast).catch(err => toast('Could not link — ' + why(err)));
+          return;
+        }
+        openPanel(n);
+      }
 
-/* ---------- spinning: scroll, drag, pinch, buttons ---------- */
-function touchView(){ lastInteract = performance.now(); anim = null; }
-const ptrs = new Map(); let drag = null, pinch = null;
-globe.addEventListener('wheel', e => {
-  e.preventDefault();
-  touchView();
-  setNear(null);
+      /* ---------- spinning: scroll, drag, pinch, buttons ---------- */
+      function touchView() { lastInteract = performance.now(); anim = null; }
+      const ptrs = new Map(); let drag = null, pinch = null;
+      globe.addEventListener('wheel', e => {
+        e.preventDefault();
+        touchView();
+        setNear(null);
 
-  const rect = globe.getBoundingClientRect();
-  const mouse = [e.clientX - rect.left, e.clientY - rect.top];
+        const rect = globe.getBoundingClientRect();
+        const mouse = [e.clientX - rect.left, e.clientY - rect.top];
 
-  applyView();
-  const geo = proj.invert(mouse);
-  if (!geo) return;
+        applyView();
+        const geo = proj.invert(mouse);
+        if (!geo) return;
 
-  setZoom(view.zoom * Math.exp(-e.deltaY * .01));
+        setZoom(view.zoom * Math.exp(-e.deltaY * .01));
 
-  applyView();
-  const next = proj.invert(mouse);
+        applyView();
+        const next = proj.invert(mouse);
 
-  if (next) {
-    view.lng -= next[0] - geo[0];
-    view.lat -= next[1] - geo[1];
-    view.lat = clampLat(view.lat);
-  }
+        if (next) {
+          view.lng -= next[0] - geo[0];
+          view.lat -= next[1] - geo[1];
+          view.lat = clampLat(view.lat);
+        }
 
-  viewChanged();
-}, { passive: false });
+        viewChanged();
+      }, { passive: false });
 
 
 
-globe.addEventListener('pointerdown', e => {
-  touchView(); globe.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]);
-  if (ptrs.size === 1) drag = { x: e.clientX, y: e.clientY, lng: view.lng, lat: view.lat, moved: 0 };
-  else if (ptrs.size === 2){ const [a, b] = [...ptrs.values()]; pinch = { d: Math.hypot(a[0] - b[0], a[1] - b[1]), z: view.zoom }; drag = null; }
-});
-globe.addEventListener('pointermove', e => {
-  if (ptrs.has(e.pointerId)) ptrs.set(e.pointerId, [e.clientX, e.clientY]);
-  if (pinch && ptrs.size === 2){ const [a, b] = [...ptrs.values()]; setZoom(pinch.z * Math.hypot(a[0] - b[0], a[1] - b[1]) / pinch.d); return; }
-  if (drag){
-    const dx = e.clientX - drag.x, dy = e.clientY - drag.y, k = degPerPx();
-    drag.moved = Math.max(drag.moved, Math.hypot(dx, dy));
-    if (drag.moved > 4){ globe.classList.add('dragging'); setNear(null);
-      view.lng = drag.lng - dx * k; view.lat = clampLat(drag.lat + dy * k); viewChanged(); }
-    return;
-  }
-  if (e.pointerType === 'mouse') setNear(linkFrom ? null : nearestCity([e.clientX, e.clientY], HIT));
-});
-function endPointer(e){
-  ptrs.delete(e.pointerId);
-  if (drag && drag.moved <= 4 && e.type === 'pointerup') clickGlobe(e.clientX, e.clientY);
-  drag = null; globe.classList.remove('dragging');
-  if (ptrs.size < 2) pinch = null;
-}
-globe.addEventListener('pointerup', endPointer);
-globe.addEventListener('pointercancel', endPointer);
-globe.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') setNear(null); });
-$('zin').onclick = () => { touchView(); flyTo(view.lng, view.lat, view.zoom * 1.7, 400); };
-$('zout').onclick = () => { touchView(); flyTo(view.lng, view.lat, view.zoom / 1.7, 400); };
-addEventListener('resize', resize);
+      globe.addEventListener('pointerdown', e => {
+        touchView(); globe.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]);
+        if (ptrs.size === 1) drag = { x: e.clientX, y: e.clientY, lng: view.lng, lat: view.lat, moved: 0 };
+        else if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; pinch = { d: Math.hypot(a[0] - b[0], a[1] - b[1]), z: view.zoom }; drag = null; }
+      });
+      globe.addEventListener('pointermove', e => {
+        if (ptrs.has(e.pointerId)) ptrs.set(e.pointerId, [e.clientX, e.clientY]);
+        if (pinch && ptrs.size === 2) { const [a, b] = [...ptrs.values()]; setZoom(pinch.z * Math.hypot(a[0] - b[0], a[1] - b[1]) / pinch.d); return; }
+        if (drag) {
+          const dx = e.clientX - drag.x, dy = e.clientY - drag.y, k = degPerPx();
+          drag.moved = Math.max(drag.moved, Math.hypot(dx, dy));
+          if (drag.moved > 4) {
+            globe.classList.add('dragging'); setNear(null);
+            view.lng = drag.lng - dx * k; view.lat = clampLat(drag.lat + dy * k); viewChanged();
+          }
+          return;
+        }
+        if (e.pointerType === 'mouse') setNear(linkFrom ? null : nearestCity([e.clientX, e.clientY], HIT));
+      });
+      function endPointer(e) {
+        ptrs.delete(e.pointerId);
+        if (drag && drag.moved <= 4 && e.type === 'pointerup') clickGlobe(e.clientX, e.clientY);
+        drag = null; globe.classList.remove('dragging');
+        if (ptrs.size < 2) pinch = null;
+      }
+      globe.addEventListener('pointerup', endPointer);
+      globe.addEventListener('pointercancel', endPointer);
+      globe.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') setNear(null); });
+      $('zin').onclick = () => { touchView(); flyTo(view.lng, view.lat, view.zoom * 1.7, 400); };
+      $('zout').onclick = () => { touchView(); flyTo(view.lng, view.lat, view.zoom / 1.7, 400); };
+      addEventListener('resize', resize);
 
-function flyTo(lng, lat, zoom = view.zoom, ms = 1000){
-  const from = { ...view }, ri = d3.geoInterpolate([from.lng, from.lat], [lng, lat]);
-  zoom = Math.max(ZMIN, Math.min(ZMAX, zoom));
-  anim = { t0: performance.now(), ms, step: t => { const [x, y] = ri(t); view.lng = x; view.lat = clampLat(y); view.zoom = from.zoom + (zoom - from.zoom) * t; } };
-}
-function clickGlobe(x, y){
-  if (linkFrom){ linkFrom = null; refreshAll(); toast('Linking cancelled'); if (current) renderPanel(current); return; }
-  const c = nearestCity([x, y], HIT);
-  if (c) return openNew(c);
-  if (placing) toast('Click on a city to plant there');
-}
+      function flyTo(lng, lat, zoom = view.zoom, ms = 1000) {
+        const from = { ...view }, ri = d3.geoInterpolate([from.lng, from.lat], [lng, lat]);
+        zoom = Math.max(ZMIN, Math.min(ZMAX, zoom));
+        anim = { t0: performance.now(), ms, step: t => { const [x, y] = ri(t); view.lng = x; view.lat = clampLat(y); view.zoom = from.zoom + (zoom - from.zoom) * t; } };
+      }
+      function clickGlobe(x, y) {
+        if (linkFrom) { linkFrom = null; refreshAll(); toast('Linking cancelled'); if (current) renderPanel(current); return; }
+        const c = nearestCity([x, y], HIT);
+        if (c) return openNew(c);
+        if (placing) toast('Click on a city to plant there');
+      }
 
-/* ---------- temperature ---------- */
-let temp = 0, tempS = 0;
-function updateTemp(){
-  const now = Date.now();
-  S.events = S.events.filter(t => now - t < 6 * HOUR);
-  const h = S.events.reduce((s, t) => s + Math.exp(-(now - t) / HEAT_TAU), 0);
-  temp = Math.max(.03, 1 - Math.exp(-h / 5));
-  const c = Math.round(4 + temp * 30);
-  $('tval').textContent = c + '°C'; $('tbar').style.width = (temp * 100) + '%';
-  $('tlabel').textContent = c < 10 ? 'resting in the cold' : c < 18 ? 'breathing slowly' : c < 26 ? 'actively fermenting' : 'bubbling over';
-  document.documentElement.style.setProperty('--breath', (6 - temp * 3.5).toFixed(1) + 's');
-  const dormant = S.nodes.filter(isDormant).length;
-  $('foot').innerHTML = `Spores ${S.nodes.length} · Hyphae ${S.edges.length} · Dormant ${dormant} · Fed today ${S.events.filter(t => now - t < DAY).length}<br>` +
-    (LIVE ? '● Live — everyone with the link grows the same organism'
-          : 'Local only — traces stay in this browser · <a id="reset">Reset</a>');
-  if (!LIVE) $('reset').onclick = () => { if (confirm('Delete every spore and comment?')){ try{ localStorage.removeItem(LS); }catch(e){} location.reload(); } };
-  $('onboard').classList.toggle('show', loaded && S.nodes.length === 0 && !placing);
-}
+      /* ---------- temperature ---------- */
+      let temp = 0, tempS = 0;
+      function updateTemp() {
+        const now = Date.now();
+        S.events = S.events.filter(t => now - t < 6 * HOUR);
+        const h = S.events.reduce((s, t) => s + Math.exp(-(now - t) / HEAT_TAU), 0);
+        temp = Math.max(.03, 1 - Math.exp(-h / 5));
+        const c = Math.round(4 + temp * 30);
+        $('tval').textContent = c + '°C'; $('tbar').style.width = (temp * 100) + '%';
+        $('tlabel').textContent = c < 10 ? 'resting in the cold' : c < 18 ? 'breathing slowly' : c < 26 ? 'actively fermenting' : 'bubbling over';
+        document.documentElement.style.setProperty('--breath', (6 - temp * 3.5).toFixed(1) + 's');
+        const dormant = S.nodes.filter(isDormant).length;
+        $('foot').innerHTML = `Spores ${S.nodes.length} · Hyphae ${S.edges.length} · Dormant ${dormant} · Fed today ${S.events.filter(t => now - t < DAY).length}<br>` +
+          (LIVE ? '● Live — everyone with the link grows the same organism'
+            : 'Local only — traces stay in this browser · <a id="reset">Reset</a>');
+        if (!LIVE) $('reset').onclick = () => { if (confirm('Delete every spore and comment?')) { try { localStorage.removeItem(LS); } catch (e) { } location.reload(); } };
+        $('onboard').classList.toggle('show', loaded && S.nodes.length === 0 && !placing);
+      }
 
-/* ---------- canvas: hyphae (great-circle arcs) + bubbles ---------- */
-const bubbles = [];
-function burstAt(n, k){
-  if (!visible(n.lng, n.lat)) return;
-  const [px, py] = proj([n.lng, n.lat]);
-  for (let i = 0; i < k; i++) bubbles.push({ x: px + (Math.random()-.5) * 30, y: py + (Math.random()-.5) * 20, r: 2 + Math.random() * 4,
-    vx: (Math.random()-.5) * 1.2, vy: -(.6 + Math.random() * 1.4), life: 1, warm: true });
-}
-const lastBurst = new Map();
-function burst(n, k){ const now = Date.now(); if (now - (lastBurst.get(n.id) || 0) < 1500) return; lastBurst.set(n.id, now); burstAt(n, k); }
-const INK = '20,28,40';
+      /* ---------- canvas: hyphae (great-circle arcs) + bubbles ---------- */
+      const bubbles = [];
+      function burstAt(n, k) {
+        if (!visible(n.lng, n.lat)) return;
+        const [px, py] = proj([n.lng, n.lat]);
+        for (let i = 0; i < k; i++) bubbles.push({
+          x: px + (Math.random() - .5) * 30, y: py + (Math.random() - .5) * 20, r: 2 + Math.random() * 4,
+          vx: (Math.random() - .5) * 1.2, vy: -(.6 + Math.random() * 1.4), life: 1, warm: true
+        });
+      }
+      const lastBurst = new Map();
+      function burst(n, k) { const now = Date.now(); if (now - (lastBurst.get(n.id) || 0) < 1500) return; lastBurst.set(n.id, now); burstAt(n, k); }
+      const INK = '20,28,40';
 
-function frame(){
-  const now = performance.now(), time = Date.now();
-  if (anim){
-    const t = Math.min(1, (now - anim.t0) / anim.ms), ease = t < .5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
-    anim.step(ease); viewChanged(); if (t >= 1) anim = null;
-  } else if (!drag && now - lastInteract > 7000 && !placing && !nearC && !$('panel').classList.contains('open')
-             && !$('modal').classList.contains('open') && !$('list').classList.contains('open') && !$('manifesto').classList.contains('open')){
-    view.lng += .03; viewChanged();          // drift slowly when nobody is touching it
-  }
+      function frame() {
+        const now = performance.now(), time = Date.now();
+        if (anim) {
+          const t = Math.min(1, (now - anim.t0) / anim.ms), ease = t < .5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
+          anim.step(ease); viewChanged(); if (t >= 1) anim = null;
+        } else if (!drag && now - lastInteract > 7000 && !placing && !nearC && !$('panel').classList.contains('open')
+          && !$('modal').classList.contains('open') && !$('list').classList.contains('open') && !$('manifesto').classList.contains('open')) {
+          view.lng += .03; viewChanged();          // drift slowly when nobody is touching it
+        }
 
-  if (dirty) {
-    drawBase();
-    dirty = false;
-  }
+        if (dirty) {
+          drawBase();
+          dirty = false;
+        }
 
-  tempS += (temp - tempS) * .02;
-  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  ctx.clearRect(0, 0, W, H);
+        tempS += (temp - tempS) * .02;
+        ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+        ctx.clearRect(0, 0, W, H);
 
-  // ambient bubbles rise faster & more often when warm
-  if (Math.random() < tempS * .5) bubbles.push({ x: Math.random() * W, y: H + 10, r: 1.5 + Math.random() * 3.5, vx: 0,
-    vy: -(.3 + Math.random() * .7) * (.5 + tempS), life: 1, warm: false });
-  for (let i = bubbles.length - 1; i >= 0; i--){
-    const b = bubbles[i]; b.x += b.vx + Math.sin(b.y * .03) * .25; b.y += b.vy; b.vx *= .97; b.life -= b.warm ? .014 : .002;
-    if (b.life <= 0 || b.y < -20){ bubbles.splice(i, 1); continue; }
-    ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, 6.283); ctx.lineWidth = 1;
-    ctx.strokeStyle = b.warm ? `rgba(${INK},${b.life * .6})` : `rgba(255,255,255,${b.life * .18})`; ctx.stroke();
-  }
+        // ambient bubbles rise faster & more often when warm
+        if (Math.random() < tempS * .5) bubbles.push({
+          x: Math.random() * W, y: H + 10, r: 1.5 + Math.random() * 3.5, vx: 0,
+          vy: -(.3 + Math.random() * .7) * (.5 + tempS), life: 1, warm: false
+        });
+        for (let i = bubbles.length - 1; i >= 0; i--) {
+          const b = bubbles[i]; b.x += b.vx + Math.sin(b.y * .03) * .25; b.y += b.vy; b.vx *= .97; b.life -= b.warm ? .014 : .002;
+          if (b.life <= 0 || b.y < -20) { bubbles.splice(i, 1); continue; }
+          ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, 6.283); ctx.lineWidth = 1;
+          ctx.strokeStyle = b.warm ? `rgba(${INK},${b.life * .6})` : `rgba(255,255,255,${b.life * .18})`; ctx.stroke();
+        }
 
-  for (const e of S.edges){
-    const A0 = byId(e.a), B0 = byId(e.b); if (!A0 || !B0) continue;
-    if (e.p < 1) e.p = Math.min(1, e.p + .01);
-    const a = [A0.lng, A0.lat], b = [B0.lng, B0.lat], ip = d3.geoInterpolate(a, b);
-    const sleepy = isDormant(A0) && isDormant(B0);
-    ctx.beginPath(); fpath({ type: 'LineString', coordinates: [a, ip(e.p)] });
-    ctx.strokeStyle = `rgba(${INK},${sleepy ? .25 : .6 + tempS * .25})`;
-    ctx.lineWidth = Math.min(2.5, .8 + e.strength * .3); ctx.stroke();
-    const tip = e.p < 1 ? ip(e.p) : (!sleepy && tempS > .1 ? ip(((time * .00015 * (.5 + tempS * 1.5)) + e.seed) % 1) : null);
-    if (tip && visible(tip[0], tip[1])){
-      const [x, y] = proj(tip); ctx.beginPath(); ctx.arc(x, y, e.p < 1 ? 2.5 : 2, 0, 6.283); ctx.fillStyle = `rgb(${INK})`; ctx.fill();
-    }
-  }
-  requestAnimationFrame(frame);
-}
+        for (const e of S.edges) {
+          const A0 = byId(e.a), B0 = byId(e.b); if (!A0 || !B0) continue;
+          if (e.p < 1) e.p = Math.min(1, e.p + .01);
+          const a = [A0.lng, A0.lat], b = [B0.lng, B0.lat], ip = d3.geoInterpolate(a, b);
+          const sleepy = isDormant(A0) && isDormant(B0);
+          ctx.beginPath(); fpath({ type: 'LineString', coordinates: [a, ip(e.p)] });
+          ctx.strokeStyle = `rgba(${INK},${sleepy ? .25 : .6 + tempS * .25})`;
+          ctx.lineWidth = Math.min(2.5, .8 + e.strength * .3); ctx.stroke();
+          const tip = e.p < 1 ? ip(e.p) : (!sleepy && tempS > .1 ? ip(((time * .00015 * (.5 + tempS * 1.5)) + e.seed) % 1) : null);
+          if (tip && visible(tip[0], tip[1])) {
+            const [x, y] = proj(tip); ctx.beginPath(); ctx.arc(x, y, e.p < 1 ? 2.5 : 2, 0, 6.283); ctx.fillStyle = `rgb(${INK})`; ctx.fill();
+          }
+        }
+        requestAnimationFrame(frame);
+      }
 
-/* ---------- planting a new spore on a city ---------- */
-let placing = false, pendingCity = null, pendingImg = null, pendingThumb = null, busy = false;
-function startPlacing(){ closePanel(); closeList(); placing = true; document.body.classList.add('placing'); updateTemp(); }
-function stopPlacing(){ placing = false; document.body.classList.remove('placing'); updateTemp(); }
-$('onboardBtn').onclick = startPlacing;
-$('cancelPlace').onclick = stopPlacing;
-$('myLoc').onclick = () => {
-  if (!navigator.geolocation) return toast("This browser can't share location — click a city instead");
-  navigator.geolocation.getCurrentPosition(p => {
-    const here = [p.coords.longitude, p.coords.latitude];
-    const c = CITIES.reduce((a, b) => d3.geoDistance(here, [a.lng, a.lat]) <= d3.geoDistance(here, [b.lng, b.lat]) ? a : b);
-    flyTo(c.lng, c.lat, 3); openNew(c);
-  }, () => toast("Couldn't get your location — click a city instead"), { timeout: 8000 });
-};
-function openNew(city){
-  stopPlacing(); setNear(null); pendingCity = city; pendingImg = pendingThumb = null;
-  const f = $('newForm'); f.reset(); f.who.value = getName();
-  $('drop').classList.remove('has'); $('drop').style.backgroundImage = '';
-  $('placeInfo').textContent = `Planting in ${city.name}, ${city.country}. Your photo becomes a spore that grows on comments and links.`;
-  $('modal').classList.add('open');
-}
-$('newForm').photo.onchange = async e => {
-  const file = e.target.files[0]; if (!file) return;
-  try{
-    [pendingImg, pendingThumb] = await Promise.all([readImg(file, 900, .75), readImg(file, 200, .7)]);
-    $('drop').style.backgroundImage = `url('${pendingImg}')`; $('drop').classList.add('has');
-  }catch(err){ toast("Couldn't read that photo"); }
-};
-$('cancelNew').onclick = () => { if (!busy) $('modal').classList.remove('open'); };
-$('modal').onclick = e => { if (e.target.id === 'modal' && !busy) $('modal').classList.remove('open'); };
-$('newForm').onsubmit = async e => {
-  e.preventDefault();
-  const f = e.target, title = f.title.value.trim(), c = pendingCity;
-  if (!pendingImg) return toast('Choose a photo first');
-  if (!title || !c || busy) return;
-  const who = f.who.value.trim(); if (who) setName(who);
-  const btn = $('plantBtn'); busy = true; btn.disabled = true; btn.textContent = 'Planting…';
-  try{
-    const n = await plantSpore(c, title, f.body.value.trim(), who || ANON, pendingImg, pendingThumb || pendingImg);
-    $('modal').classList.remove('open');
-    flyTo(n.lng, n.lat, Math.max(view.zoom, 2.5), 800);
-    setTimeout(() => { lastBurst.delete(n.id); burst(n, 24); }, 850);
-    openPanel(n);
-    toast(S.nodes.length > 1 ? `A new spore took root in ${c.name} — try linking it to another` : `The first spore took root in ${c.name}`);
-  }catch(err){ toast('Could not plant — ' + why(err), 5000); }
-  finally{ busy = false; btn.disabled = false; btn.textContent = 'Plant'; }
-};
+      /* ---------- planting a new spore on a city ---------- */
+      let placing = false, pendingCity = null, pendingImg = null, pendingThumb = null, busy = false;
+      function startPlacing() { closePanel(); closeList(); placing = true; document.body.classList.add('placing'); updateTemp(); }
+      function stopPlacing() { placing = false; document.body.classList.remove('placing'); updateTemp(); }
+      $('onboardBtn').onclick = startPlacing;
+      $('cancelPlace').onclick = stopPlacing;
+      $('myLoc').onclick = () => {
+        if (!navigator.geolocation) return toast("This browser can't share location — click a city instead");
+        navigator.geolocation.getCurrentPosition(p => {
+          const here = [p.coords.longitude, p.coords.latitude];
+          const c = CITIES.reduce((a, b) => d3.geoDistance(here, [a.lng, a.lat]) <= d3.geoDistance(here, [b.lng, b.lat]) ? a : b);
+          flyTo(c.lng, c.lat, 3); openNew(c);
+        }, () => toast("Couldn't get your location — click a city instead"), { timeout: 8000 });
+      };
+      function openNew(city) {
+        stopPlacing(); setNear(null); pendingCity = city; pendingImg = pendingThumb = null;
+        const f = $('newForm'); f.reset(); f.who.value = getName();
+        $('drop').classList.remove('has'); $('drop').style.backgroundImage = '';
+        $('placeInfo').textContent = `Planting in ${city.name}, ${city.country}. Your photo becomes a spore that grows on comments and links.`;
+        $('modal').classList.add('open');
+      }
+      $('newForm').photo.onchange = async e => {
+        const file = e.target.files[0]; if (!file) return;
+        try {
+          [pendingImg, pendingThumb] = await Promise.all([readImg(file, 900, .75), readImg(file, 200, .7)]);
+          $('drop').style.backgroundImage = `url('${pendingImg}')`; $('drop').classList.add('has');
+        } catch (err) { toast("Couldn't read that photo"); }
+      };
+      $('cancelNew').onclick = () => { if (!busy) $('modal').classList.remove('open'); };
+      $('modal').onclick = e => { if (e.target.id === 'modal' && !busy) $('modal').classList.remove('open'); };
+      $('newForm').onsubmit = async e => {
+        e.preventDefault();
+        const f = e.target, title = f.title.value.trim(), c = pendingCity;
+        if (!pendingImg) return toast('Choose a photo first');
+        if (!title || !c || busy) return;
+        const who = f.who.value.trim(); if (who) setName(who);
+        const btn = $('plantBtn'); busy = true; btn.disabled = true; btn.textContent = 'Planting…';
+        try {
+          const n = await plantSpore(c, title, f.body.value.trim(), who || ANON, pendingImg, pendingThumb || pendingImg);
+          $('modal').classList.remove('open');
+          flyTo(n.lng, n.lat, Math.max(view.zoom, 2.5), 800);
+          setTimeout(() => { lastBurst.delete(n.id); burst(n, 24); }, 850);
+          openPanel(n);
+          toast(S.nodes.length > 1 ? `A new spore took root in ${c.name} — try linking it to another` : `The first spore took root in ${c.name}`);
+        } catch (err) { toast('Could not plant — ' + why(err), 5000); }
+        finally { busy = false; btn.disabled = false; btn.textContent = 'Plant'; }
+      };
 
-/* ---------- panel ---------- */
-function openPanel(n){ const prev = current; current = n; if (prev && byId(prev.id)) refreshMarker(prev); refreshMarker(n); renderPanel(n); $('panel').classList.add('open'); }
-function closePanel(){ current = null; linkFrom = null; $('panel').classList.remove('open'); refreshAll(); }
-function renderPanel(n){
-  const dormant = isDormant(n);
-  const links = S.edges.filter(e => e.a === n.id || e.b === n.id).map(e => byId(e.a === n.id ? e.b : e.a)).filter(Boolean);
-  const age = Math.max(0, Math.floor((Date.now() - n.born) / DAY)) + 1;
-  const stage = dormant ? '<span class="chip dormant">Dormant — feed it to wake it up</span>'
-    : ripeness(n) >= 1 ? '<span class="chip ripe">Deeply aged</span>' : ripeness(n) > .35 ? '<span class="chip ripe">Ripening</span>' : '<span class="chip">Newborn spore</span>';
-  const p = $('panel');
-  p.innerHTML = `
+      /* ---------- panel ---------- */
+      function openPanel(n) { const prev = current; current = n; if (prev && byId(prev.id)) refreshMarker(prev); refreshMarker(n); renderPanel(n); $('panel').classList.add('open'); }
+      function closePanel() { current = null; linkFrom = null; $('panel').classList.remove('open'); refreshAll(); }
+      function renderPanel(n) {
+        const dormant = isDormant(n);
+        const links = S.edges.filter(e => e.a === n.id || e.b === n.id).map(e => byId(e.a === n.id ? e.b : e.a)).filter(Boolean);
+        const age = Math.max(0, Math.floor((Date.now() - n.born) / DAY)) + 1;
+        const stage = dormant ? '<span class="chip dormant">Dormant — feed it to wake it up</span>'
+          : ripeness(n) >= 1 ? '<span class="chip ripe">Deeply aged</span>' : ripeness(n) > .35 ? '<span class="chip ripe">Ripening</span>' : '<span class="chip">Newborn spore</span>';
+        const p = $('panel');
+        p.innerHTML = `
     <button class="yeast ghost close" id="pClose" aria-label="Close">×</button>
     <img class="hero" src="${n.img}" alt="">
     <div class="pbody">
@@ -8160,7 +8996,7 @@ function renderPanel(n){
       </div>
       <h3>Linked spores · ${links.length}</h3>
       <div class="links">${links.length ? links.map(l => `<button data-id="${l.id}"><i style="background-image:url('${l.thumb || l.img}')"></i>${esc(l.title)}</button>`).join('')
-        : '<span class="empty">Not linked to anything yet. A similar ferment, a shared ingredient, the same person… link anything.</span>'}</div>
+            : '<span class="empty">Not linked to anything yet. A similar ferment, a shared ingredient, the same person… link anything.</span>'}</div>
       <h3>Comments · ${n.comments.length}</h3>
       ${n.comments.slice().reverse().map(c => `<div class="comment"><div class="who"><b>${esc(c.who)}</b>${ago(c.t)}${mine(c) ? `<button class="cdel" data-cid="${esc(c.id)}">delete</button>` : ''}</div>
         ${c.text ? `<p>${esc(c.text)}</p>` : ''}${c.img ? `<img src="${c.img}" alt="">` : ''}</div>`).join('') || '<p class="empty">Feed it with the first comment.</p>'}
@@ -8170,113 +9006,114 @@ function renderPanel(n){
         <div class="row2"><label><input type="checkbox" name="withPhoto"> Attach a photo</label><button class="yeast" id="feedBtn">Feed it</button></div>
       </form>
     </div>`;
-  $('pClose').onclick = closePanel;
-  $('pPhoto').onclick = () => { photoMode = { n, text: '' }; $('photoInput').click(); };
-  $('pFly').onclick = () => flyTo(n.lng, n.lat, Math.max(view.zoom, 3));
-  if ($('pDel')) $('pDel').onclick = async () => {
-    if (!confirm(`Delete "${n.title}"? Its comments and links go with it. This can't be undone.`)) return;
-    try{ await deleteSpore(n); toast(`"${n.title}" was removed`); }
-    catch(err){ toast('Could not delete — ' + why(err), 5000); }
-  };
-  p.querySelectorAll('.cdel').forEach(b => b.onclick = async () => {
-    const c = n.comments.find(x => String(x.id) === b.dataset.cid); if (!c) return;
-    if (!confirm('Delete this comment?')) return;
-    try{ await deleteComment(c); renderPanel(n); }
-    catch(err){ toast('Could not delete — ' + why(err), 5000); }
-  });
-  $('pLink').onclick = () => {
-    if (S.nodes.length < 2) return toast('There are no other spores to link yet');
-    linkFrom = linkFrom === n ? null : n; refreshAll(); renderPanel(n);
-    if (linkFrom){ toast('Click the spore to link on the globe'); if (innerWidth <= 760) $('panel').classList.remove('open'); }
-  };
-  p.querySelectorAll('.links button').forEach(b => b.onclick = () => { const t = byId(b.dataset.id); if (!t) return; flyTo(t.lng, t.lat); openPanel(t); });
-  $('pForm').onsubmit = async ev => {
-    ev.preventDefault();
-    const f = ev.target, who = f.who.value.trim(), text = f.text.value.trim();
-    if (who) setName(who);
-    if (f.withPhoto.checked){ photoMode = { n, text }; $('photoInput').click(); return; }
-    if (!text) return toast('Write something first');
-    if (busy) return;
-    const btn = $('feedBtn'); busy = true; btn.disabled = true;
-    try{
-      await postComment(n, who || ANON, text, null);
-      f.text.value = ''; renderPanel(n); toast('It ate the comment and grew a little');
-    }catch(err){ toast('Could not post — ' + why(err), 5000); }
-    finally{ busy = false; if (btn.isConnected) btn.disabled = false; }
-  };
-}
-let photoMode = null;
-$('photoInput').onchange = async e => {
-  const file = e.target.files[0]; e.target.value = '';
-  const pm = photoMode; photoMode = null;
-  if (!file || !pm || busy) return;
-  busy = true; toast('Feeding the photo…');
-  try{
-    const src = await readImg(file, 900, .75);
-    await postComment(pm.n, getName() || ANON, pm.text, src);
-    const f = $('pForm'); if (f) f.text.value = '';
-    renderPanel(pm.n); toast('It ate the photo and shot up');
-  }catch(err){ toast('Could not post — ' + why(err), 5000); }
-  finally{ busy = false; }
-};
+        $('pClose').onclick = closePanel;
+        $('pPhoto').onclick = () => { photoMode = { n, text: '' }; $('photoInput').click(); };
+        $('pFly').onclick = () => flyTo(n.lng, n.lat, Math.max(view.zoom, 3));
+        if ($('pDel')) $('pDel').onclick = async () => {
+          if (!confirm(`Delete "${n.title}"? Its comments and links go with it. This can't be undone.`)) return;
+          try { await deleteSpore(n); toast(`"${n.title}" was removed`); }
+          catch (err) { toast('Could not delete — ' + why(err), 5000); }
+        };
+        p.querySelectorAll('.cdel').forEach(b => b.onclick = async () => {
+          const c = n.comments.find(x => String(x.id) === b.dataset.cid); if (!c) return;
+          if (!confirm('Delete this comment?')) return;
+          try { await deleteComment(c); renderPanel(n); }
+          catch (err) { toast('Could not delete — ' + why(err), 5000); }
+        });
+        $('pLink').onclick = () => {
+          if (S.nodes.length < 2) return toast('There are no other spores to link yet');
+          linkFrom = linkFrom === n ? null : n; refreshAll(); renderPanel(n);
+          if (linkFrom) { toast('Click the spore to link on the globe'); if (innerWidth <= 760) $('panel').classList.remove('open'); }
+        };
+        p.querySelectorAll('.links button').forEach(b => b.onclick = () => { const t = byId(b.dataset.id); if (!t) return; flyTo(t.lng, t.lat); openPanel(t); });
+        $('pForm').onsubmit = async ev => {
+          ev.preventDefault();
+          const f = ev.target, who = f.who.value.trim(), text = f.text.value.trim();
+          if (who) setName(who);
+          if (f.withPhoto.checked) { photoMode = { n, text }; $('photoInput').click(); return; }
+          if (!text) return toast('Write something first');
+          if (busy) return;
+          const btn = $('feedBtn'); busy = true; btn.disabled = true;
+          try {
+            await postComment(n, who || ANON, text, null);
+            f.text.value = ''; renderPanel(n); toast('It ate the comment and grew a little');
+          } catch (err) { toast('Could not post — ' + why(err), 5000); }
+          finally { busy = false; if (btn.isConnected) btn.disabled = false; }
+        };
+      }
+      let photoMode = null;
+      $('photoInput').onchange = async e => {
+        const file = e.target.files[0]; e.target.value = '';
+        const pm = photoMode; photoMode = null;
+        if (!file || !pm || busy) return;
+        busy = true; toast('Feeding the photo…');
+        try {
+          const src = await readImg(file, 900, .75);
+          await postComment(pm.n, getName() || ANON, pm.text, src);
+          const f = $('pForm'); if (f) f.text.value = '';
+          renderPanel(pm.n); toast('It ate the photo and shot up');
+        } catch (err) { toast('Could not post — ' + why(err), 5000); }
+        finally { busy = false; }
+      };
 
-/* ---------- archive grid ---------- */
-function renderList(){
-  const q = $('search').value.trim().toLowerCase();
-  const items = S.nodes.filter(n => !q || [n.title, n.body, n.who, placeOf(n), ...n.comments.map(c => c.text + ' ' + c.who)].join(' ').toLowerCase().includes(q))
-    .sort((a, b) => b.lastFed - a.lastFed);
-  $('grid').innerHTML = items.map(n => `<button class="card ${isDormant(n) ? 'dormant' : ''}" data-id="${n.id}"><img src="${n.thumb || n.img}" alt="">
+      /* ---------- archive grid ---------- */
+      function renderList() {
+        const q = $('search').value.trim().toLowerCase();
+        const items = S.nodes.filter(n => !q || [n.title, n.body, n.who, placeOf(n), ...n.comments.map(c => c.text + ' ' + c.who)].join(' ').toLowerCase().includes(q))
+          .sort((a, b) => b.lastFed - a.lastFed);
+        $('grid').innerHTML = items.map(n => `<button class="card ${isDormant(n) ? 'dormant' : ''}" data-id="${n.id}"><img src="${n.thumb || n.img}" alt="">
     <h4>${esc(n.title)}</h4><div class="st">${esc(n.who)}${n.city ? ' · ' + esc(n.city) : ''} · ${n.comments.length} comments · ${ago(n.lastFed)}${isDormant(n) ? ' · dormant' : ''}</div></button>`).join('')
-    || '<p class="empty">The database is still empty.</p>';
-  $('grid').querySelectorAll('.card').forEach(c => c.onclick = () => {
-    const n = byId(c.dataset.id); if (!n) return; closeList(); flyTo(n.lng, n.lat, Math.max(view.zoom, 2.5)); openPanel(n);
-  });
-}
-function closeList(){ $('list').classList.remove('open'); $('viewBtn').textContent = 'Database'; }
-$('viewBtn').onclick = () => {
-  if ($('list').classList.contains('open')) return closeList();
-  closeManifesto(); stopPlacing(); closePanel(); renderList(); $('list').classList.add('open'); $('viewBtn').textContent = 'Globe';
-};
-function closeManifesto(){ $('manifesto').classList.remove('open'); $('maniBtn').textContent = 'Manifesto'; }
-$('maniBtn').onclick = () => {
-  if ($('manifesto').classList.contains('open')) return closeManifesto();
-  closeList(); stopPlacing(); closePanel(); $('manifesto').classList.add('open'); $('manifesto').scrollTop = 0; $('maniBtn').textContent = 'Globe';
-};
-$('maniBackTop').onclick = closeManifesto;
-$('listBack').onclick = closeList;
-$('search').oninput = renderList;
+          || '<p class="empty">The database is still empty.</p>';
+        $('grid').querySelectorAll('.card').forEach(c => c.onclick = () => {
+          const n = byId(c.dataset.id); if (!n) return; closeList(); flyTo(n.lng, n.lat, Math.max(view.zoom, 2.5)); openPanel(n);
+        });
+      }
+      function closeList() { $('list').classList.remove('open'); $('viewBtn').textContent = 'Database'; }
+      $('viewBtn').onclick = () => {
+        if ($('list').classList.contains('open')) return closeList();
+        closeManifesto(); stopPlacing(); closePanel(); renderList(); $('list').classList.add('open'); $('viewBtn').textContent = 'Globe';
+      };
+      function closeManifesto() { $('manifesto').classList.remove('open'); $('maniBtn').textContent = 'Manifesto'; }
+      $('maniBtn').onclick = () => {
+        if ($('manifesto').classList.contains('open')) return closeManifesto();
+        closeList(); stopPlacing(); closePanel(); $('manifesto').classList.add('open'); $('manifesto').scrollTop = 0; $('maniBtn').textContent = 'Globe';
+      };
+      $('maniBackTop').onclick = closeManifesto;
+      $('listBack').onclick = closeList;
+      $('search').oninput = renderList;
 
-addEventListener('keydown', e => {
-  if (e.key !== 'Escape') return;
-  if ($('modal').classList.contains('open')){ if (!busy) $('modal').classList.remove('open'); }
-  else if (placing) stopPlacing();
-  else if ($('panel').classList.contains('open')) closePanel();
-  else { closeList(); closeManifesto(); }
-});
+      addEventListener('keydown', e => {
+        if (e.key !== 'Escape') return;
+        if ($('modal').classList.contains('open')) { if (!busy) $('modal').classList.remove('open'); }
+        else if (placing) stopPlacing();
+        else if ($('panel').classList.contains('open')) closePanel();
+        else { closeList(); closeManifesto(); }
+      });
 
-/* ---------- start ---------- */
-function focusLatest(){
-  if (!S.nodes.length) return;
-  const n = S.nodes.reduce((a, b) => a.lastFed >= b.lastFed ? a : b);
-  flyTo(n.lng, n.lat, view.zoom, 1500);
-}
-resize();
-if (LIVE){
-  toast('Waking the organism…', 8000);
-  loadRemote()
-    .then(() => { loaded = true; focusLatest(); updateTemp(); tempS = temp; subscribe(); $('toast').classList.remove('show'); })
-    .catch(err => toast('Could not reach the database — ' + why(err), 8000));
-  // catch up on anything missed while the tab was in the background
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && loaded) loadRemote().catch(() => {}); });
-} else {
-  S = loadLocal() || { nodes: [], edges: [], events: [] };
-  S.nodes.forEach(n => n.comments.forEach(c => { if (!c.id) c.id = 'c' + newName(); }));   // older saves had no comment ids
-  loaded = true; refreshAll(); focusLatest();
-}
-updateTemp(); tempS = temp;
-setInterval(() => { updateTemp(); refreshAll(); }, 60000);
-requestAnimationFrame(frame);
-})();
-</script>
+      /* ---------- start ---------- */
+      function focusLatest() {
+        if (!S.nodes.length) return;
+        const n = S.nodes.reduce((a, b) => a.lastFed >= b.lastFed ? a : b);
+        flyTo(n.lng, n.lat, view.zoom, 1500);
+      }
+      resize();
+      if (LIVE) {
+        toast('Waking the organism…', 8000);
+        loadRemote()
+          .then(() => { loaded = true; focusLatest(); updateTemp(); tempS = temp; subscribe(); $('toast').classList.remove('show'); })
+          .catch(err => toast('Could not reach the database — ' + why(err), 8000));
+        // catch up on anything missed while the tab was in the background
+        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && loaded) loadRemote().catch(() => { }); });
+      } else {
+        S = loadLocal() || { nodes: [], edges: [], events: [] };
+        S.nodes.forEach(n => n.comments.forEach(c => { if (!c.id) c.id = 'c' + newName(); }));   // older saves had no comment ids
+        loaded = true; refreshAll(); focusLatest();
+      }
+      updateTemp(); tempS = temp;
+      setInterval(() => { updateTemp(); refreshAll(); }, 60000);
+      requestAnimationFrame(frame);
+    })();
+  </script>
 </body>
+
 </html>
