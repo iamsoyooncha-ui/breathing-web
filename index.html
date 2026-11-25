@@ -12,17 +12,44 @@
     :root {
       --bg: #121212;
       --panel: #181818;
-      --ink: #ececec;
       --soft: #8c8c8c;
       --line: #333;
-      --mint: #b9f2b4;
-      --lav: #cfb3ec;
-      --dark: #111;
+      --primary-color: #fef0b9;
+      --secondary-color: #cfb3ec;
+      --text-color: #111;
+      --text-color-light: #ececec;
       --breath: 5s;
+
+
+      /* Global typography scale */
+
+      --font-size: 13px;
+
+      --fs-10: 0.769rem;
+      --fs-11: 0.846rem;
+      --fs-11-5: 0.885rem;
+      --fs-12: 0.923rem;
+      --fs-12-5: 0.962rem;
+      --fs-13: 1rem;
+      --fs-13-5: 1.038rem;
+      --fs-15: 1.154rem;
+      --fs-16: 1.231rem;
+      --fs-17: 1.308rem;
+      --fs-20: 1.538rem;
+      --fs-28: 2.154rem;
     }
+
+  
 
     * {
       box-sizing: border-box
+    }
+
+    @font-face {
+      font-family: "BMHannaPro";
+      src: url("./BMHannaPro-Regular.otf") format("opentype");
+      font-weight: 400;
+      font-style: normal;
     }
 
     html,
@@ -31,9 +58,9 @@
       height: 100%;
       overflow: hidden;
       background: var(--bg);
-      color: var(--ink);
-      font-family: "Inter", system-ui, -apple-system, sans-serif;
-      font-size: 13px;
+      color: var(--text-color-light);
+      font-family: "BMHannaPro", system-ui, -apple-system, sans-serif;
+      font-size: var(--fs-13);
       -webkit-font-smoothing: antialiased
     }
 
@@ -41,6 +68,11 @@
       font: inherit;
       cursor: pointer;
       color: inherit
+    }
+
+    .logo {
+      height: 50px;
+      width: auto;
     }
 
     /* ---------- globe ---------- */
@@ -115,7 +147,7 @@
       right: 76px;
       bottom: 18px;
       z-index: 900;
-      font-size: 10px;
+      font-size: var(--fs-10);
       color: #555
     }
 
@@ -123,42 +155,27 @@
     .yeast {
       position: relative;
       border: 0;
-      background: var(--mint);
-      color: var(--dark);
+      background: var(--primary-color);
+      color: var(--text-color);
       padding: 9px 18px;
-      font-size: 13px;
-      border-radius: 62% 38% 54% 46% / 55% 48% 52% 45%;
-      animation: yeast 8s ease-in-out infinite;
-      transition: transform .2s
+      font-size: var(--fs-13);
+      transition: transform .2s;
+      border-radius: 6px;
     }
 
-    .yeast::after {
-      content: "";
-      position: absolute;
-      right: -6px;
-      top: -4px;
-      width: 13px;
-      height: 13px;
-      border-radius: 50%;
-      background: inherit;
-      transition: transform .35s cubic-bezier(.3, 1.6, .5, 1)
-    }
 
-    .yeast:hover::after {
-      transform: translate(4px, -3px) scale(1.35)
-    }
 
     .yeast:active {
       transform: scale(.94)
     }
 
     .yeast.lav {
-      background: var(--lav)
+      background: var(--secondary-color)
     }
 
     .yeast.ghost {
       background: #2a2a2a;
-      color: var(--ink)
+      color: var(--text-color-light)
     }
 
     .yeast:nth-of-type(2n) {
@@ -174,17 +191,6 @@
       height: 11px
     }
 
-    @keyframes yeast {
-
-      0%,
-      100% {
-        border-radius: 62% 38% 54% 46% / 55% 48% 52% 45%
-      }
-
-      50% {
-        border-radius: 44% 56% 40% 60% / 47% 58% 42% 53%
-      }
-    }
 
     /* ---------- header ---------- */
     .top {
@@ -226,16 +232,6 @@
       animation: breathe var(--breath) ease-in-out infinite
     }
 
-    .mark::after {
-      content: "";
-      position: absolute;
-      right: -5px;
-      top: -3px;
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: #fff
-    }
 
     @keyframes breathe {
       50% {
@@ -244,7 +240,7 @@
     }
 
     .brand h1 {
-      font-size: 15px;
+      font-size: var(--fs-15);
       font-weight: 400;
       margin: 0;
       letter-spacing: .02em
@@ -259,7 +255,7 @@
     }
 
     .temp b {
-      color: var(--ink);
+      color: var(--text-color-light);
       font-weight: 400
     }
 
@@ -287,7 +283,7 @@
       left: 20px;
       bottom: 16px;
       z-index: 900;
-      font-size: 11px;
+      font-size: var(--fs-11);
       color: #666;
       line-height: 1.7
     }
@@ -353,28 +349,14 @@
       top: 50%;
       transform: translateY(-50%);
       white-space: nowrap;
-      font-size: 11.5px;
-      background: var(--mint);
-      color: var(--dark);
+      font-size: var(--fs-12-5);
+      background: var(--primary-color);
+      color: var(--text-color);
       padding: 0 6px;
       border-radius: 2px;
       transition: background .2s
     }
 
-    .city::after {
-      content: "";
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      width: 40px;
-      height: 40px;
-      margin: -20px 0 0 -20px;
-      border-radius: 50%;
-      border: 1.5px dashed #111;
-      opacity: 0;
-      transform: scale(.4);
-      transition: all .25s
-    }
 
     .city.has span {
       display: none
@@ -392,7 +374,8 @@
 
     .city.near span {
       display: block;
-      background: #fff
+      background: var(--text-color);
+      color: var(--primary-color);
     }
 
     @keyframes spin {
@@ -427,9 +410,9 @@
       transform: translateX(-50%);
       margin-top: 5px;
       white-space: nowrap;
-      font-size: 11.5px;
-      background: var(--lav);
-      color: var(--dark);
+      font-size: var(--fs-11-5);
+      background: var(--secondary-color);
+      color: var(--text-color);
       padding: 0 6px;
       border-radius: 2px;
       pointer-events: none
@@ -487,7 +470,7 @@
       width: 34px;
       height: 30px;
       padding: 0;
-      font-size: 16px;
+      font-size: var(--fs-16);
       z-index: 2
     }
 
@@ -503,13 +486,13 @@
     }
 
     .pbody h2 {
-      font-size: 20px;
+      font-size: var(--fs-20);
       font-weight: 400;
       margin: 0 0 10px
     }
 
     .meta {
-      font-size: 11.5px;
+      font-size: var(--fs-11-5);
       color: var(--soft);
       display: flex;
       flex-wrap: wrap;
@@ -518,11 +501,11 @@
     }
 
     .chip {
-      font-size: 11px;
+      font-size: var(--fs-11);
       padding: 0 6px;
       border-radius: 2px;
-      background: var(--mint);
-      color: var(--dark)
+      background: var(--primary-color);
+      color: var(--text-color)
     }
 
     .chip.dormant {
@@ -531,18 +514,18 @@
     }
 
     .chip.ripe {
-      background: var(--lav)
+      background: var(--secondary-color)
     }
 
     .recipe {
-      font-size: 13.5px;
+      font-size: var(--fs-13-5);
       line-height: 1.75;
       margin: 16px 0;
       white-space: pre-wrap
     }
 
     .by {
-      font-size: 11.5px;
+      font-size: var(--fs-11-5);
       color: var(--soft);
       margin-top: 6px
     }
@@ -564,7 +547,7 @@
     }
 
     h3 {
-      font-size: 11px;
+      font-size: var(--fs-11);
       letter-spacing: .08em;
       text-transform: uppercase;
       color: var(--soft);
@@ -580,11 +563,11 @@
 
     .links button {
       border: 0;
-      background: var(--lav);
-      color: var(--dark);
+      background: var(--secondary-color);
+      color: var(--text-color);
       padding: 0 6px 0 0;
       border-radius: 2px;
-      font-size: 12px;
+      font-size: var(--fs-12);
       display: flex;
       align-items: center;
       gap: 6px
@@ -598,7 +581,7 @@
     }
 
     .empty {
-      font-size: 12px;
+      font-size: var(--fs-12);
       color: var(--soft)
     }
 
@@ -608,12 +591,12 @@
     }
 
     .comment .who {
-      font-size: 11.5px;
+      font-size: var(--fs-11-5);
       color: var(--soft)
     }
 
     .comment .who b {
-      color: var(--ink);
+      color: var(--text-color-light);
       font-weight: 400;
       margin-right: 8px
     }
@@ -624,7 +607,7 @@
       background: none;
       padding: 0;
       color: var(--soft);
-      font-size: 11px;
+      font-size: var(--fs-11);
       text-decoration: underline
     }
 
@@ -638,7 +621,7 @@
 
     .comment p {
       margin: 4px 0 0;
-      font-size: 13px;
+      font-size: var(--fs-13);
       line-height: 1.6;
       white-space: pre-wrap
     }
@@ -658,13 +641,13 @@
     input[type=text],
     textarea {
       font: inherit;
-      font-size: 13px;
+      font-size: var(--fs-13);
       width: 100%;
       padding: 9px 11px;
       border-radius: 2px;
       border: 1px solid #3a3a3a;
       background: var(--bg);
-      color: var(--ink)
+      color: var(--text-color-light)
     }
 
     textarea {
@@ -674,7 +657,7 @@
 
     input:focus,
     textarea:focus {
-      outline: 1px solid var(--mint);
+      outline: 1px solid var(--primary-color);
       outline-offset: -1px
     }
 
@@ -689,7 +672,7 @@
     }
 
     .row2 label {
-      font-size: 12px;
+      font-size: var(--fs-12);
       color: var(--soft);
       flex: 1
     }
@@ -747,16 +730,16 @@
     .card h4 {
       display: inline-block;
       margin: 8px 0 4px;
-      font-size: 12px;
+      font-size: var(--fs-12);
       font-weight: 400;
-      background: var(--lav);
-      color: var(--dark);
+      background: var(--secondary-color);
+      color: var(--text-color);
       padding: 0 6px;
       border-radius: 2px
     }
 
     .card .st {
-      font-size: 11px;
+      font-size: var(--fs-11);
       color: var(--soft)
     }
 
@@ -781,14 +764,14 @@
     }
 
     .manifesto h2 {
-      font-size: 28px;
+      font-size: var(--fs-28);
       font-weight: 400;
       margin: 0 0 28px;
       letter-spacing: .01em
     }
 
     .manifesto p {
-      font-size: 15px;
+      font-size: var(--fs-15);
       line-height: 1.85;
       margin: 0 0 20px
     }
@@ -805,7 +788,7 @@
       position: relative;
       padding: 14px 0 14px 44px;
       border-top: 1px solid var(--line);
-      font-size: 17px;
+      font-size: var(--fs-17);
       line-height: 1.6
     }
 
@@ -820,17 +803,17 @@
       top: 15px;
       width: 24px;
       height: 22px;
-      font-size: 12px;
+      font-size: var(--fs-12);
       display: flex;
       align-items: center;
       justify-content: center;
-      background: var(--mint);
-      color: var(--dark);
+      background: var(--primary-color);
+      color: var(--text-color);
       border-radius: 55% 45% 50% 50%
     }
 
     .manifesto p.sign {
-      font-size: 12px;
+      font-size: var(--fs-12);
       color: var(--soft);
       margin-top: 36px
     }
@@ -874,13 +857,13 @@
 
     .box h2 {
       margin: 0;
-      font-size: 16px;
+      font-size: var(--fs-16);
       font-weight: 400
     }
 
     .sub {
       margin: 0 0 4px;
-      font-size: 11.5px;
+      font-size: var(--fs-11-5);
       color: var(--soft)
     }
 
@@ -891,7 +874,7 @@
       align-items: center;
       justify-content: center;
       color: var(--soft);
-      font-size: 12px;
+      font-size: var(--fs-12);
       cursor: pointer;
       background: var(--bg) center/cover no-repeat;
       text-align: center;
@@ -931,13 +914,13 @@
 
     .onboard h2 {
       margin: 0 0 8px;
-      font-size: 15px;
+      font-size: var(--fs-15);
       font-weight: 400
     }
 
     .onboard p {
       margin: 0 0 18px;
-      font-size: 12px;
+      font-size: var(--fs-12);
       line-height: 1.7;
       color: var(--soft)
     }
@@ -949,10 +932,10 @@
       transform: translate(-50%, 20px);
       opacity: 0;
       background: #eee;
-      color: var(--dark);
+      color: var(--text-color);
       padding: 6px 14px;
       border-radius: 2px;
-      font-size: 12px;
+      font-size: var(--fs-12);
       z-index: 1400;
       transition: all .3s;
       pointer-events: none
@@ -1008,10 +991,9 @@
   </div>
   <div class="zoom"><button class="yeast ghost" id="zin" aria-label="Zoom in">+</button><button class="yeast ghost"
       id="zout" aria-label="Zoom out">−</button></div>
-  <div class="credit">Coastlines: Natural Earth</div>
 
   <header class="top">
-    <div class="brand"><span class="mark"></span>
+    <div class="brand"><img class="logo" src="button.svg" alt=""></span>
       <h1>The Fermentary</h1>
     </div>
     <div class="temp" title="Recent activity sets the temperature">
@@ -1024,13 +1006,14 @@
   </header>
 
   <div class="placebar" id="placebar">
-    Click a city on the globe — scroll to spin it
+    Click a city on the globe.
     <button class="yeast" id="myLoc">Nearest to me</button><button class="yeast ghost" id="cancelPlace">Cancel</button>
   </div>
 
   <div class="onboard" id="onboard">
     <h2>Nothing is growing yet</h2>
-    <p>Scroll to spin the globe, click a city and plant a photo of something fermenting.<br>Comments and links feed it.
+    <p>Scroll to zoom in, drag to pan around, click a city and plant a photo of something fermenting.<br>Comments and
+      links feed it.
     </p>
     <button class="yeast" id="onboardBtn">Plant the first spore</button>
   </div>
@@ -1073,7 +1056,7 @@
     <form class="box" id="newForm">
       <h2>Plant a spore</h2>
       <p class="sub" id="placeInfo"></p>
-      <label class="drop" id="drop">Choose a photo (required)<input type="file" name="photo" accept="image/*"
+      <label class="drop" id="drop">Choose a photo<input type="file" name="photo" accept="image/*"
           hidden></label>
       <input type="text" name="title" placeholder="What is it?" required maxlength="40">
       <textarea name="body" placeholder="Recipe, ratios, temperature, timing, the story…" rows="4"></textarea>
@@ -8554,25 +8537,82 @@ Agdam|Azerbaijan|40.905|45.556|10
       }
 
       /* ---------- actions ---------- */
-      async function plantSpore(c, title, body, who, img, thumb) {
-        const { lat, lng } = spotIn(c);
-        if (!LIVE) {
-          const now = Date.now();
-          const n = {
-            id: 'n' + now.toString(36) + Math.random().toString(36).slice(2, 5), title, body, who, img, thumb: img, lat, lng,
-            city: c.name, country: c.country, comments: [], energy: 2, born: now, lastFed: now, phase: Math.random() * 3
-          };
-          S.nodes.push(n); S.events.push(now); refreshMarker(n); refreshCities(); save(); updateTemp();
-          return n;
-        }
-        const me = await ensureAuth(), name = newName();
-        const img_path = `${me}/${name}.jpg`, thumb_path = `${me}/${name}-t.jpg`;
-        await Promise.all([upload(img_path, img), upload(thumb_path, thumb)]);
-        const { data, error } = await sb.from('spores')
-          .insert({ title, body, who, lat, lng, city: c.name, country: c.country, img_path, thumb_path }).select().single();
-        if (error) throw error;
-        return applySpore(fromSpore(data));
-      }
+      
+async function plantSpore(c, title, body, who, img, thumb) {
+  const { lat, lng } = spotIn(c);
+
+  // Local/demo mode
+  if (!LIVE) {
+    const now = Date.now();
+
+    const n = {
+      id: 'n' + now.toString(36) + Math.random().toString(36).slice(2, 5),
+      title,
+      body,
+      who,
+      img: img || null,
+      thumb: thumb || img || null,
+      lat,
+      lng,
+      city: c.name,
+      country: c.country,
+      comments: [],
+      energy: 2,
+      born: now,
+      lastFed: now,
+      phase: Math.random() * 3
+    };
+
+    S.nodes.push(n);
+    S.events.push(now);
+    refreshMarker(n);
+    refreshCities();
+    save();
+    updateTemp();
+
+    return n;
+  }
+
+  // Live mode
+  const me = await ensureAuth();
+
+  let img_path = null;
+  let thumb_path = null;
+
+  // Only upload images if the user selected one
+  if (img) {
+    const name = newName();
+
+    img_path = `${me}/${name}.jpg`;
+    thumb_path = `${me}/${name}-t.jpg`;
+
+    await Promise.all([
+      upload(img_path, img),
+      upload(thumb_path, thumb || img)
+    ]);
+  }
+
+  // Save the spore, with or without an image
+  const { data, error } = await sb.from('spores')
+    .insert({
+      title,
+      body,
+      who,
+      lat,
+      lng,
+      city: c.name,
+      country: c.country,
+      img_path,
+      thumb_path
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  return applySpore(fromSpore(data));
+}
+
       function feedLocal(n, amount) {
         const woke = isDormant(n);
         n.energy += amount; n.lastFed = Date.now(); S.events.push(Date.now());
@@ -8687,7 +8727,17 @@ Agdam|Azerbaijan|40.905|45.556|10
         }
         return el;
       }
-      const maxRank = () => { const z = view.zoom; return z < 1.3 ? 1 : z < 1.8 ? 2 : z < 2.6 ? 3 : z < 3.6 ? 4 : z < 4.6 ? 6 : z < 6 ? 7 : 10; };
+                const maxRank = () => {
+                  const z = view.zoom;
+
+                  return z < 1.8 ? 1
+                       : z < 2.6 ? 2
+                       : z < 3.6 ? 3
+                       : z < 4.6 ? 4
+                       : z < 6   ? 6
+                       : z < 8   ? 7
+                       : 10;
+                };
       function placePins() {
         const maxR = maxRank(), boxes = [], next = new Set();
         const fits = b => !boxes.some(o => b[0] < o[2] && b[2] > o[0] && b[1] < o[3] && b[3] > o[1]);
@@ -8854,10 +8904,9 @@ Agdam|Azerbaijan|40.905|45.556|10
         $('tlabel').textContent = c < 10 ? 'resting in the cold' : c < 18 ? 'breathing slowly' : c < 26 ? 'actively fermenting' : 'bubbling over';
         document.documentElement.style.setProperty('--breath', (6 - temp * 3.5).toFixed(1) + 's');
         const dormant = S.nodes.filter(isDormant).length;
-        $('foot').innerHTML = `Spores ${S.nodes.length} · Hyphae ${S.edges.length} · Dormant ${dormant} · Fed today ${S.events.filter(t => now - t < DAY).length}<br>` +
-          (LIVE ? '● Live — everyone with the link grows the same organism'
-            : 'Local only — traces stay in this browser · <a id="reset">Reset</a>');
-        if (!LIVE) $('reset').onclick = () => { if (confirm('Delete every spore and comment?')) { try { localStorage.removeItem(LS); } catch (e) { } location.reload(); } };
+        // $('foot').innerHTML = `Spores ${S.nodes.length} · Hyphae ${S.edges.length} · Dormant ${dormant} · Fed today ${S.events.filter(t => now - t < DAY).length}` +
+        // ' · <a id="reset">Reset</a>';
+        // if (!LIVE) $('reset').onclick = () => { if (confirm('Delete every spore and comment?')) { try { localStorage.removeItem(LS); } catch (e) { } location.reload(); } };
         $('onboard').classList.toggle('show', loaded && S.nodes.length === 0 && !placing);
       }
 
@@ -8895,29 +8944,29 @@ Agdam|Azerbaijan|40.905|45.556|10
         ctx.clearRect(0, 0, W, H);
 
         // ambient bubbles rise faster & more often when warm
-        if (Math.random() < tempS * .5) bubbles.push({
-          x: Math.random() * W, y: H + 10, r: 1.5 + Math.random() * 3.5, vx: 0,
-          vy: -(.3 + Math.random() * .7) * (.5 + tempS), life: 1, warm: false
-        });
-        for (let i = bubbles.length - 1; i >= 0; i--) {
-          const b = bubbles[i]; b.x += b.vx + Math.sin(b.y * .03) * .25; b.y += b.vy; b.vx *= .97; b.life -= b.warm ? .014 : .002;
-          if (b.life <= 0 || b.y < -20) { bubbles.splice(i, 1); continue; }
-          ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, 6.283); ctx.lineWidth = 1;
-          ctx.strokeStyle = b.warm ? `rgba(${INK},${b.life * .6})` : `rgba(255,255,255,${b.life * .18})`; ctx.stroke();
-        }
+
 
         for (const e of S.edges) {
-          const A0 = byId(e.a), B0 = byId(e.b); if (!A0 || !B0) continue;
+          const A0 = byId(e.a), B0 = byId(e.b);
+          if (!A0 || !B0) continue;
+
           if (e.p < 1) e.p = Math.min(1, e.p + .01);
-          const a = [A0.lng, A0.lat], b = [B0.lng, B0.lat], ip = d3.geoInterpolate(a, b);
+
+          const a = [A0.lng, A0.lat],
+            b = [B0.lng, B0.lat],
+            ip = d3.geoInterpolate(a, b);
+
           const sleepy = isDormant(A0) && isDormant(B0);
-          ctx.beginPath(); fpath({ type: 'LineString', coordinates: [a, ip(e.p)] });
+
+          ctx.beginPath();
+          fpath({
+            type: 'LineString',
+            coordinates: [a, ip(e.p)]
+          });
+
           ctx.strokeStyle = `rgba(${INK},${sleepy ? .25 : .6 + tempS * .25})`;
-          ctx.lineWidth = Math.min(2.5, .8 + e.strength * .3); ctx.stroke();
-          const tip = e.p < 1 ? ip(e.p) : (!sleepy && tempS > .1 ? ip(((time * .00015 * (.5 + tempS * 1.5)) + e.seed) % 1) : null);
-          if (tip && visible(tip[0], tip[1])) {
-            const [x, y] = proj(tip); ctx.beginPath(); ctx.arc(x, y, e.p < 1 ? 2.5 : 2, 0, 6.283); ctx.fillStyle = `rgb(${INK})`; ctx.fill();
-          }
+          ctx.lineWidth = Math.min(2.5, .8 + e.strength * .3);
+          ctx.stroke();
         }
         requestAnimationFrame(frame);
       }
@@ -8955,7 +9004,6 @@ Agdam|Azerbaijan|40.905|45.556|10
       $('newForm').onsubmit = async e => {
         e.preventDefault();
         const f = e.target, title = f.title.value.trim(), c = pendingCity;
-        if (!pendingImg) return toast('Choose a photo first');
         if (!title || !c || busy) return;
         const who = f.who.value.trim(); if (who) setName(who);
         const btn = $('plantBtn'); busy = true; btn.disabled = true; btn.textContent = 'Planting…';
